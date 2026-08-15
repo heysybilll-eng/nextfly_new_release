@@ -1,0 +1,22 @@
+{
+  "name": "nextfly-ios-release-notes-h5",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Single-file H5 release notes page for the Nextfly iOS WebView. Dev tooling only — index.html itself has zero runtime dependencies.",
+  "scripts": {
+    "placeholders": "node tools/make-placeholders.mjs",
+    "assets": "node tools/build-assets.mjs",
+    "shot": "node tools/shot.mjs",
+    "diff": "node tools/diff.mjs",
+    "styles": "node tools/assert-styles.mjs",
+    "inline": "node tools/inline.mjs",
+    "check": "node tools/shot.mjs --all"
+  },
+  "devDependencies": {
+    "pixelmatch": "^6.0.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.34.0"
+  }
+}

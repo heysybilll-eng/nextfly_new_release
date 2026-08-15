@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Light-only lock: prevents WebKit from auto-darkening the page when the OS is in dark mode.
+     A hardcoded white background alone does NOT stop this. -->
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
+<title>What's new</title>
+<style>
+/* ============================================================================
+   1. RESET
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, h1, h2, p, figure, ul, li { margin: 0; padding: 0; }
+ul { list-style: none; }
+img { display: block; max-width: 100%; height: auto; }
+
+/* ============================================================================
+   2. TOKENS
+   ---------------------------------------------------------------------------
+   PLACEHOLDER VALUES. Every custom property below is replaced verbatim by the
+   Claude Design bundle once it lands:
+     _ds/fused-design-system-f83c2a1e-.../tokens/{colors,fonts,radius,spacing,typography}.css
+   Do not re-derive these by eye from a screenshot — port the token files.
+   Nothing below this block should contain a literal colour, radius or spacing
+   value; everything references a var() so the re-skin is a token swap.
+   ========================================================================== */
+:root {
+  color-scheme: light;
+
+  /* -- colour ------------------------------------------------------------- */
+  --c-bg:            #FFFFFF;
+  --c-surface:       #F5F5F7;
+  --c-text:          #1D1D1F;
+  --c-text-muted:    #6E6E73;
+  --c-text-subtle:   #8E8E93;
+  --c-accent:        #0071E3;
+  --c-hairline:      rgba(0, 0, 0, 0.08);
+  --c-shot-frame:    rgba(0, 0, 0, 0.06);
+  --c-shot-shadow:   rgba(0, 0, 0, 0.10);
+
+  /* -- typography --------------------------------------------------------- */
+  --f-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+            system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+            "Noto Sans", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
+            "Noto Sans Devanagari", sans-serif;
+
+  --fs-eyebrow:  13px;  --lh-eyebrow:  1.30;  --ls-eyebrow:  0.06em;
+  --fs-h1:       32px;  --lh-h1:       1.16;  --ls-h1:      -0.021em;
+  --fs-lead:     17px;  --lh-lead:     1.50;  --ls-lead:    -0.011em;
+  --fs-h2:       20px;  --lh-h2:       1.28;  --ls-h2:      -0.015em;
+  --fs-body:     15px;  --lh-body:     1.55;  --ls-body:    -0.006em;
+  --fs-caption:  13px;  --lh-caption:  1.45;  --ls-caption:  0em;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold: 600;
+  --fw-bold:    700;
+
+  /* -- spacing ------------------------------------------------------------ */
+  --sp-1:  4px;   --sp-2:  8px;   --sp-3: 12px;   --sp-4: 16px;
+  --sp-5: 20px;   --sp-6: 24px;   --sp-7: 32px;   --sp-8: 40px;
+  --sp-9: 56px;   --sp-10: 72px;
+
+  /* -- radius ------------------------------------------------------------- */
+  --r-sm: 8px;  --r-md: 14px;  --r-lg: 20px;  --r-xl: 28px;
+
+  /* -- layout ------------------------------------------------------------- */
+  --page-max: 420px;      /* design canvas width — confirm against .dc.html */
+  --page-gutter: var(--sp-5);
+}
+
+/* ============================================================================
+   3. BASE + WEBVIEW HARDENING
+   ========================================================================== */
+html {
+  -webkit-text-size-adjust: 100%;   /* stop iOS inflating text on rotate */
+  text-size-adjust: 100%;
+}
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--f-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* WebView chrome removal */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;      /* no long-press "Save Image" sheet */
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* kill rubber-band overscroll revealing a white/grey band behind the page */
+  overscroll-behavior-y: none;
+}
+
+/* Body copy stays selectable — users copy support text out of release notes. */
+.feature__body, .sync__body, .footer__body { -webkit-user-select: text; user-select: text; }
+
+/* ============================================================================
+   4. LAYOUT
+   ========================================================================== */
+.page {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+  /* Safe areas: the WebView is frequently presented full-bleed under the
+     notch / Dynamic Island and over the home indicator. */
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--sp-8));
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--sp-10));
+  padding-left: max(var(--page-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--page-gutter), env(safe-area-inset-right, 0px));
+}
+
+/* ============================================================================
+   5. HERO
+   ========================================================================== */
+.hero { text-align: center; }
+
+/* <picture> is display:inline by default — width and `margin:auto` are both
+   inert on it until it is made a block. */
+.hero__art {
+  display: block;
+  width: 132px;
+  margin: 0 auto var(--sp-6);
+}
+.hero__art img { width: 100%; }
+
+.hero__eyebrow {
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin-bottom: var(--sp-3);
+}
+
+.hero__title {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-h1);
+  font-weight: var(--fw-bold);
+  text-wrap: balance;         /* keeps 2-line titles evenly split in de/ru */
+  margin-bottom: var(--sp-3);
+}
+
+.hero__intro {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  letter-spacing: var(--ls-lead);
+  color: var(--c-text-muted);
+  text-wrap: pretty;
+}
+
+.hero__version {
+  display: inline-block;
+  margin-top: var(--sp-4);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
+}
+.hero__version[hidden] { display: none; }
+
+/* ============================================================================
+   6. FEATURES
+   ========================================================================== */
+.features { margin-top: var(--sp-10); }
+
+.feature + .feature { margin-top: var(--sp-9); }
+
+.feature__title {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  font-weight: var(--fw-semibold);
+  text-wrap: balance;
+  margin-bottom: var(--sp-2);
+}
+
+.feature__body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  color: var(--c-text-muted);
+  text-wrap: pretty;
+}
+
+/* Long German compounds / unbroken Russian tokens must never widen the page. */
+.feature__title, .feature__body, .hero__title, .sync__title { overflow-wrap: anywhere; }
+
+.feature__shot {
+  display: block;
+  margin-top: var(--sp-5);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: var(--c-surface);
+  box-shadow: 0 1px 2px var(--c-shot-shadow), 0 0 0 1px var(--c-shot-frame) inset;
+}
+.feature__shot img { width: 100%; }
+
+/* ============================================================================
+   7. SYNC CALLOUT
+   ========================================================================== */
+.sync {
+  margin-top: var(--sp-10);
+  padding: var(--sp-7) var(--sp-6);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  text-align: center;
+}
+.sync__art { display: block; width: 96px; margin: 0 auto var(--sp-5); }
+.sync__art img { width: 100%; }
+.sync__title {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  font-weight: var(--fw-semibold);
+  text-wrap: balance;
+  margin-bottom: var(--sp-2);
+}
+.sync__body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  color: var(--c-text-muted);
+  text-wrap: pretty;
+}
+
+/* ============================================================================
+   8. FOOTER
+   ========================================================================== */
+.footer {
+  margin-top: var(--sp-9);
+  padding-top: var(--sp-7);
+  border-top: 1px solid var(--c-hairline);
+  text-align: center;
+}
+.footer__title {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-1);
+}
+.footer__body {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  letter-spacing: var(--ls-caption);
+  color: var(--c-text-subtle);
+  text-wrap: pretty;
+}
+
+/* ============================================================================
+   9. LOCALE TYPOGRAPHY
+   ---------------------------------------------------------------------------
+   Latin-tuned negative letter-spacing and 1.5 line-height do not transfer to
+   CJK or Devanagari. These are :lang() rules, not JS branches.
+   ========================================================================== */
+
+/* CJK: never break inside words with the Latin rule set — it violates
+   kinsoku (禁则) line-breaking. Reset the negative tracking too. */
+:is(:lang(ja), :lang(ko), :lang(zh-Hant)) :is(
+  .hero__title, .hero__intro, .feature__title, .feature__body,
+  .sync__title, .sync__body, .footer__body
+) {
+  letter-spacing: 0;
+  line-height: 1.7;
+  word-break: normal;
+  line-break: strict;
+  overflow-wrap: normal;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .hero__title { line-height: 1.34; }
+:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .feature__title,
+:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .sync__title { line-height: 1.45; }
+/* Uppercasing is meaningless for CJK and adds unwanted tracking. */
+:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .hero__eyebrow {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* Devanagari: matras and conjuncts sit outside the Latin em box and get
+   clipped at 1.5. Extra leading is required, not cosmetic. */
+:lang(hi) :is(.hero__intro, .feature__body, .sync__body, .footer__body) { line-height: 1.75; }
+:lang(hi) :is(.hero__title, .feature__title, .sync__title) { line-height: 1.45; letter-spacing: 0; }
+:lang(hi) .hero__eyebrow { text-transform: none; letter-spacing: 0.02em; }
+
+/* de/ru run ~35% longer than en — ease the display size so titles keep to
+   two lines at 320px. */
+:is(:lang(de), :lang(ru)) .hero__title { font-size: calc(var(--fs-h1) * 0.88); }
+:is(:lang(de), :lang(ru)) .feature__title { font-size: calc(var(--fs-h2) * 0.94); }
+:lang(ru) .hero__eyebrow { letter-spacing: 0.04em; }
+
+/* ============================================================================
+   10. NARROW SCREENS (iPhone SE, 320pt)
+   ========================================================================== */
+@media (max-width: 359px) {
+  :root {
+    --fs-h1: 28px;
+    --fs-h2: 18px;
+    --page-gutter: var(--sp-4);
+  }
+  .hero__art { width: 112px; }
+}
+
+/* ============================================================================
+   11. ACCESSIBILITY
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<main class="page">
+
+  <header class="hero">
+    <picture class="hero__art">
+      <source srcset="assets/rocket.webp" type="image/webp">
+      <img src="assets/rocket.png" alt="" width="264" height="264" fetchpriority="high" decoding="async">
+    </picture>
+    <p class="hero__eyebrow" data-i18n="hero_eyebrow"></p>
+    <h1 class="hero__title" data-i18n="hero_title"></h1>
+    <p class="hero__intro" data-i18n="hero_intro"></p>
+    <p class="hero__version" id="version" hidden></p>
+  </header>
+
+  <div class="features">
+
+    <section class="feature">
+      <h2 class="feature__title" data-i18n="f_polish_title"></h2>
+      <p class="feature__body" data-i18n="f_polish_body"></p>
+    </section>
+
+    <section class="feature">
+      <h2 class="feature__title" data-i18n="f_account_title"></h2>
+      <p class="feature__body" data-i18n="f_account_body"></p>
+      <picture class="feature__shot" data-shot="1">
+        <source srcset="assets/shot-1.webp" type="image/webp">
+        <img src="assets/shot-1.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
+      </picture>
+    </section>
+
+    <section class="feature">
+      <h2 class="feature__title" data-i18n="f_dark_title"></h2>
+      <p class="feature__body" data-i18n="f_dark_body"></p>
+      <picture class="feature__shot" data-shot="2">
+        <source srcset="assets/shot-2.webp" type="image/webp">
+        <img src="assets/shot-2.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
+      </picture>
+    </section>
+
+    <section class="feature">
+      <h2 class="feature__title" data-i18n="f_expiry_title"></h2>
+      <p class="feature__body" data-i18n="f_expiry_body"></p>
+      <picture class="feature__shot" data-shot="3">
+        <source srcset="assets/shot-3.webp" type="image/webp">
+        <img src="assets/shot-3.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
+      </picture>
+    </section>
+
+    <section class="feature">
+      <h2 class="feature__title" data-i18n="f_stats_title"></h2>
+      <p class="feature__body" data-i18n="f_stats_body"></p>
+      <picture class="feature__shot" data-shot="4">
+        <source srcset="assets/shot-4.webp" type="image/webp">
+        <img src="assets/shot-4.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
+      </picture>
+    </section>
+
+  </div>
+
+  <section class="sync">
+    <picture class="sync__art">
+      <source srcset="assets/group-2.webp" type="image/webp">
+      <img src="assets/group-2.png" alt="" width="192" height="192" loading="lazy" decoding="async">
+    </picture>
+    <h2 class="sync__title" data-i18n="sync_title"></h2>
+    <p class="sync__body" data-i18n="sync_body"></p>
+  </section>
+
+  <footer class="footer">
+    <p class="footer__title" data-i18n="footer_title"></p>
+    <p class="footer__body" data-i18n="footer_body"></p>
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==========================================================================
+     LOCALES
+     --------------------------------------------------------------------------
+     All 11 are LTR, so there is no dir="rtl" branch.
+     Translations are drafts — see README.md "Translations" before shipping.
+     ======================================================================== */
+  var SUPPORTED = ['en','fr','de','it','es','ja','ko','zh-Hant','id','hi','ru'];
+
+  /* Simplified Chinese has no dedicated locale here. Traditional Chinese is a
+     far closer read for those users than English, so zh-Hans resolves to
+     zh-Hant. Set to false to send zh-Hans to English instead. */
+  var ZH_HANS_TO_HANT = true;
+
+  /* Locales that ship their own screenshot set under assets/<lang>/.
+     Empty = every locale uses the default English screenshots. Add a code here
+     only after the folder exists, so we never request a missing file. */
+  var LOCALIZED_SHOTS = [];
+
+  var I18N = {
+    'en': {
+      doc_title:      "What's new",
+      hero_eyebrow:   'iOS Update',
+      hero_title:     "Here's what's new",
+      hero_intro:     "A few things we think you'll like.",
+      f_polish_title: 'Interface polish',
+      f_polish_body:  'A round of refinements across the app — cleaner layouts and smoother transitions throughout.',
+      f_account_title:'Account linking & sync',
+      f_account_body: 'Link a Google or email account under Settings › Login & Security. Your account info now stays in sync across iOS and Android.',
+      f_dark_title:   'Dark Mode',
+      f_dark_body:    "It's finally here on iOS. It follows your system automatically, or you can switch it yourself anytime.",
+      f_expiry_title: 'Membership expiry',
+      f_expiry_body:  'Your profile now shows exactly when your membership ends.',
+      f_stats_title:  'Trip stats preview',
+      f_stats_body:   'A new card on My trips gives you a quick look at your travel numbers.',
+      sync_title:     'iOS and Android, fully in sync',
+      sync_body:      'From this version on, both platforms match on features and experience. Going forward, new features land on both at the same time.',
+      footer_title:   'Questions or ideas?',
+      footer_body:    'Just reach out — we read every one.'
+    },
+    'fr': {
+      doc_title:      'Nouveautés',
+      hero_eyebrow:   'Mise à jour iOS',
+      hero_title:     'Voici les nouveautés',
+      hero_intro:     'Quelques améliorations qui devraient vous plaire.',
+      f_polish_title: 'Interface peaufinée',
+      f_polish_body:  "Une série d'améliorations dans toute l'application : des mises en page plus claires et des transitions plus fluides.",
+      f_account_title:'Association et synchronisation du compte',
+      f_account_body: 'Associez un compte Google ou e-mail dans Réglages › Connexion et sécurité. Les informations de votre compte restent désormais synchronisées entre iOS et Android.',
+      f_dark_title:   'Mode sombre',
+      f_dark_body:    "Il arrive enfin sur iOS. Il suit automatiquement votre système, ou vous pouvez le basculer vous-même à tout moment.",
+      f_expiry_title: "Expiration de l'abonnement",
+      f_expiry_body:  'Votre profil affiche désormais la date exacte de fin de votre abonnement.',
+      f_stats_title:  'Aperçu des statistiques de voyage',
+      f_stats_body:   'Une nouvelle carte dans Mes voyages vous donne un aperçu rapide de vos chiffres de voyage.',
+      sync_title:     'iOS et Android, parfaitement alignés',
+      sync_body:      'À partir de cette version, les deux plateformes offrent les mêmes fonctionnalités et la même expérience. Désormais, les nouveautés arrivent simultanément sur les deux.',
+      footer_title:   'Des questions ou des idées ?',
+      footer_body:    'Écrivez-nous — nous lisons chaque message.'
+    },
+    'de': {
+      doc_title:      'Neuerungen',
+      hero_eyebrow:   'iOS-Update',
+      hero_title:     'Das ist neu',
+      hero_intro:     'Ein paar Dinge, die dir gefallen dürften.',
+      f_polish_title: 'Feinschliff für die Oberfläche',
+      f_polish_body:  'Zahlreiche Verbesserungen in der gesamten App – klarere Layouts und flüssigere Übergänge.',
+      f_account_title:'Konto verknüpfen & synchronisieren',
+      f_account_body: 'Verknüpfe unter Einstellungen › Anmeldung und Sicherheit ein Google- oder E-Mail-Konto. Deine Kontodaten bleiben jetzt zwischen iOS und Android synchron.',
+      f_dark_title:   'Dunkelmodus',
+      f_dark_body:    'Endlich auch auf iOS. Er folgt automatisch deinen Systemeinstellungen – oder du schaltest ihn jederzeit selbst um.',
+      f_expiry_title: 'Ablauf der Mitgliedschaft',
+      f_expiry_body:  'In deinem Profil siehst du jetzt genau, wann deine Mitgliedschaft endet.',
+      f_stats_title:  'Reisestatistik auf einen Blick',
+      f_stats_body:   'Eine neue Karte unter Meine Reisen zeigt dir deine Reisezahlen im Überblick.',
+      sync_title:     'iOS und Android vollständig im Gleichklang',
+      sync_body:      'Ab dieser Version bieten beide Plattformen denselben Funktionsumfang und dasselbe Erlebnis. Künftig erscheinen neue Funktionen zeitgleich auf beiden.',
+      footer_title:   'Fragen oder Ideen?',
+      footer_body:    'Schreib uns einfach – wir lesen jede Nachricht.'
+    },
+    'it': {
+      doc_title:      'Novità',
+      hero_eyebrow:   'Aggiornamento iOS',
+      hero_title:     'Ecco le novità',
+      hero_intro:     'Alcune cose che pensiamo ti piaceranno.',
+      f_polish_title: 'Interfaccia rifinita',
+      f_polish_body:  "Una serie di miglioramenti in tutta l'app: layout più puliti e transizioni più fluide.",
+      f_account_title:'Collegamento e sincronizzazione account',
+      f_account_body: "Collega un account Google o e-mail in Impostazioni › Accesso e sicurezza. I dati del tuo account ora restano sincronizzati tra iOS e Android.",
+      f_dark_title:   'Modalità scura',
+      f_dark_body:    'Finalmente disponibile su iOS. Segue automaticamente il sistema, oppure puoi attivarla tu quando vuoi.',
+      f_expiry_title: "Scadenza dell'abbonamento",
+      f_expiry_body:  'Il tuo profilo ora mostra esattamente quando termina il tuo abbonamento.',
+      f_stats_title:  'Anteprima statistiche di viaggio',
+      f_stats_body:   'Una nuova scheda in I miei viaggi ti offre uno sguardo rapido sui tuoi numeri di viaggio.',
+      sync_title:     'iOS e Android, perfettamente allineati',
+      sync_body:      "Da questa versione entrambe le piattaforme offrono le stesse funzionalità e la stessa esperienza. D'ora in poi le novità arriveranno su entrambe nello stesso momento.",
+      footer_title:   'Domande o idee?',
+      footer_body:    'Scrivici pure: leggiamo ogni messaggio.'
+    },
+    'es': {
+      doc_title:      'Novedades',
+      hero_eyebrow:   'Actualización de iOS',
+      hero_title:     'Esto es lo nuevo',
+      hero_intro:     'Algunas cosas que creemos que te gustarán.',
+      f_polish_title: 'Interfaz pulida',
+      f_polish_body:  'Una tanda de mejoras en toda la app: diseños más limpios y transiciones más fluidas.',
+      f_account_title:'Vinculación y sincronización de la cuenta',
+      f_account_body: 'Vincula una cuenta de Google o de correo en Ajustes › Inicio de sesión y seguridad. Los datos de tu cuenta ahora se mantienen sincronizados entre iOS y Android.',
+      f_dark_title:   'Modo oscuro',
+      f_dark_body:    'Por fin llega a iOS. Sigue automáticamente tu sistema, o puedes cambiarlo tú cuando quieras.',
+      f_expiry_title: 'Vencimiento de la membresía',
+      f_expiry_body:  'Tu perfil ahora muestra exactamente cuándo termina tu membresía.',
+      f_stats_title:  'Vista previa de estadísticas de viaje',
+      f_stats_body:   'Una nueva tarjeta en Mis viajes te permite ver de un vistazo tus cifras de viaje.',
+      sync_title:     'iOS y Android, totalmente sincronizados',
+      sync_body:      'A partir de esta versión, ambas plataformas coinciden en funciones y experiencia. En adelante, las novedades llegarán a las dos al mismo tiempo.',
+      footer_title:   '¿Preguntas o ideas?',
+      footer_body:    'Escríbenos: leemos todos los mensajes.'
+    },
+    'ja': {
+      doc_title:      '新機能',
+      hero_eyebrow:   'iOS アップデート',
+      hero_title:     '今回のアップデート',
+      hero_intro:     'きっと気に入っていただける変更をお届けします。',
+      f_polish_title: 'UI の細部を改善',
+      f_polish_body:  'アプリ全体を見直し、レイアウトをすっきりと、画面の切り替えをより滑らかにしました。',
+      f_account_title:'アカウント連携と同期',
+      f_account_body: '「設定 › ログインとセキュリティ」から Google アカウントまたはメールアドレスを連携できます。アカウント情報は iOS と Android の間で同期されるようになりました。',
+      f_dark_title:   'ダークモード',
+      f_dark_body:    'iOS にもついに登場。システム設定に自動で追従するほか、いつでも手動で切り替えられます。',
+      f_expiry_title: 'メンバーシップの有効期限',
+      f_expiry_body:  'プロフィール画面で、メンバーシップの終了日を正確に確認できるようになりました。',
+      f_stats_title:  '旅行統計プレビュー',
+      f_stats_body:   '「マイトリップ」に新しいカードが加わり、旅の記録をひと目で確認できます。',
+      sync_title:     'iOS と Android の機能が完全に揃いました',
+      sync_body:      'このバージョンから、両プラットフォームの機能と使い心地が一致します。今後の新機能は、両方に同時に登場します。',
+      footer_title:   'ご質問・ご要望はありますか？',
+      footer_body:    'お気軽にお寄せください。すべて目を通しています。'
+    },
+    'ko': {
+      doc_title:      '새로운 기능',
+      hero_eyebrow:   'iOS 업데이트',
+      hero_title:     '이번 업데이트 소식',
+      hero_intro:     '마음에 드실 만한 변화를 준비했습니다.',
+      f_polish_title: '인터페이스 다듬기',
+      f_polish_body:  '앱 전반을 손봤습니다. 레이아웃은 더 깔끔하게, 화면 전환은 더 부드럽게 바뀌었습니다.',
+      f_account_title:'계정 연결 및 동기화',
+      f_account_body: '설정 › 로그인 및 보안에서 Google 또는 이메일 계정을 연결할 수 있습니다. 이제 계정 정보가 iOS와 Android 간에 동기화됩니다.',
+      f_dark_title:   '다크 모드',
+      f_dark_body:    '드디어 iOS에도 들어왔습니다. 시스템 설정을 자동으로 따르거나, 언제든 직접 전환할 수 있습니다.',
+      f_expiry_title: '멤버십 만료일',
+      f_expiry_body:  '이제 프로필에서 멤버십이 언제 끝나는지 정확히 확인할 수 있습니다.',
+      f_stats_title:  '여행 통계 미리보기',
+      f_stats_body:   '내 여행에 새 카드가 추가되어 여행 기록을 한눈에 볼 수 있습니다.',
+      sync_title:     'iOS와 Android, 이제 완전히 같아졌습니다',
+      sync_body:      '이번 버전부터 두 플랫폼의 기능과 경험이 일치합니다. 앞으로 새로운 기능은 양쪽에 동시에 제공됩니다.',
+      footer_title:   '궁금한 점이나 의견이 있으신가요?',
+      footer_body:    '편하게 알려주세요. 하나하나 모두 읽고 있습니다.'
+    },
+    'zh-Hant': {
+      doc_title:      '新版功能',
+      hero_eyebrow:   'iOS 更新',
+      hero_title:     '這次更新有什麼新東西',
+      hero_intro:     '幾項我們覺得你會喜歡的改變。',
+      f_polish_title: '介面細節優化',
+      f_polish_body:  '我們重新梳理了整個 App，版面更清爽，轉場更順暢。',
+      f_account_title:'帳號綁定與同步',
+      f_account_body: '可在「設定 › 登入與安全性」綁定 Google 或電子郵件帳號，帳號資料現在會在 iOS 與 Android 之間保持同步。',
+      f_dark_title:   '深色模式',
+      f_dark_body:    '終於登陸 iOS。可自動跟隨系統設定，也能隨時自行切換。',
+      f_expiry_title: '會員到期時間',
+      f_expiry_body:  '個人檔案現在會清楚顯示你的會員何時到期。',
+      f_stats_title:  '行程數據預覽卡',
+      f_stats_body:   '「我的行程」新增卡片，讓你快速掌握自己的旅行數字。',
+      sync_title:     'iOS 與 Android 功能完全同步',
+      sync_body:      '從這個版本開始，兩個平台的功能與使用體驗完全一致。日後推出的新功能，也會同時登陸雙平台。',
+      footer_title:   '有問題或建議嗎？',
+      footer_body:    '歡迎隨時告訴我們，每一則我們都會看。'
+    },
+    'id': {
+      doc_title:      'Yang baru',
+      hero_eyebrow:   'Pembaruan iOS',
+      hero_title:     'Apa yang baru kali ini',
+      hero_intro:     'Beberapa hal yang kami rasa akan kamu suka.',
+      f_polish_title: 'Antarmuka yang lebih rapi',
+      f_polish_body:  'Sejumlah penyempurnaan di seluruh aplikasi — tata letak lebih bersih dan transisi lebih mulus.',
+      f_account_title:'Penautan & sinkronisasi akun',
+      f_account_body: 'Tautkan akun Google atau email di Pengaturan › Login dan Keamanan. Informasi akunmu kini tetap sinkron antara iOS dan Android.',
+      f_dark_title:   'Mode Gelap',
+      f_dark_body:    'Akhirnya hadir di iOS. Mengikuti sistem secara otomatis, atau ganti sendiri kapan saja.',
+      f_expiry_title: 'Masa berlaku keanggotaan',
+      f_expiry_body:  'Profilmu kini menampilkan dengan tepat kapan keanggotaanmu berakhir.',
+      f_stats_title:  'Pratinjau statistik perjalanan',
+      f_stats_body:   'Kartu baru di Perjalanan Saya membantumu melihat sekilas angka perjalananmu.',
+      sync_title:     'iOS dan Android kini sepenuhnya selaras',
+      sync_body:      'Mulai versi ini, kedua platform punya fitur dan pengalaman yang sama. Ke depannya, fitur baru akan hadir di keduanya secara bersamaan.',
+      footer_title:   'Ada pertanyaan atau ide?',
+      footer_body:    'Hubungi kami saja — kami membaca semuanya.'
+    },
+    'hi': {
+      doc_title:      'क्या नया है',
+      hero_eyebrow:   'iOS अपडेट',
+      hero_title:     'इस बार क्या नया है',
+      hero_intro:     'कुछ बदलाव जो आपको ज़रूर पसंद आएंगे।',
+      f_polish_title: 'इंटरफ़ेस में सुधार',
+      f_polish_body:  'पूरे ऐप में कई सुधार — साफ़-सुथरा लेआउट और ज़्यादा स्मूद ट्रांज़िशन।',
+      f_account_title:'अकाउंट लिंकिंग और सिंक',
+      f_account_body: 'सेटिंग्स › लॉगिन और सुरक्षा में जाकर Google या ईमेल अकाउंट लिंक करें। आपकी अकाउंट जानकारी अब iOS और Android पर सिंक रहती है।',
+      f_dark_title:   'डार्क मोड',
+      f_dark_body:    'आख़िरकार iOS पर भी आ गया। यह आपकी सिस्टम सेटिंग को अपने आप फ़ॉलो करता है, या आप इसे कभी भी खुद बदल सकते हैं।',
+      f_expiry_title: 'मेंबरशिप की समाप्ति',
+      f_expiry_body:  'अब आपकी प्रोफ़ाइल में साफ़ दिखेगा कि आपकी मेंबरशिप कब ख़त्म हो रही है।',
+      f_stats_title:  'ट्रिप आँकड़ों की झलक',
+      f_stats_body:   'मेरी ट्रिप्स में एक नया कार्ड, जिससे आप अपने सफ़र के आँकड़े एक नज़र में देख सकें।',
+      sync_title:     'iOS और Android अब पूरी तरह एक जैसे',
+      sync_body:      'इस वर्ज़न से दोनों प्लेटफ़ॉर्म पर फ़ीचर और अनुभव एक जैसे हैं। आगे से नए फ़ीचर दोनों पर एक साथ आएंगे।',
+      footer_title:   'कोई सवाल या सुझाव?',
+      footer_body:    'बेझिझक लिखें — हम हर संदेश पढ़ते हैं।'
+    },
+    'ru': {
+      doc_title:      'Что нового',
+      hero_eyebrow:   'Обновление iOS',
+      hero_title:     'Что нового',
+      hero_intro:     'Несколько изменений, которые вам понравятся.',
+      f_polish_title: 'Отшлифованный интерфейс',
+      f_polish_body:  'Множество улучшений по всему приложению — аккуратнее вёрстка, плавнее переходы.',
+      f_account_title:'Привязка и синхронизация аккаунта',
+      f_account_body: 'Привяжите аккаунт Google или электронную почту в разделе «Настройки › Вход и безопасность». Данные аккаунта теперь синхронизируются между iOS и Android.',
+      f_dark_title:   'Тёмная тема',
+      f_dark_body:    'Наконец-то и на iOS. Следует настройкам системы автоматически или переключается вручную в любой момент.',
+      f_expiry_title: 'Срок действия подписки',
+      f_expiry_body:  'В профиле теперь видно, когда именно заканчивается ваша подписка.',
+      f_stats_title:  'Статистика поездок',
+      f_stats_body:   'Новая карточка в разделе «Мои поездки» — быстрый обзор ваших цифр путешествий.',
+      sync_title:     'iOS и Android полностью синхронизированы',
+      sync_body:      'Начиная с этой версии обе платформы совпадают по функциям и впечатлениям. Новые возможности будут появляться на обеих одновременно.',
+      footer_title:   'Есть вопросы или идеи?',
+      footer_body:    'Напишите нам — мы читаем каждое сообщение.'
+    }
+  };
+
+  /* ==========================================================================
+     RESOLUTION
+     ======================================================================== */
+  function params() {
+    try { return new URLSearchParams(location.search); }
+    catch (e) { return { get: function () { return null; } }; }
+  }
+
+  function matchOne(tag) {
+    if (!tag) return null;
+    var t = String(tag).trim();
+    if (!t) return null;
+    var lower = t.toLowerCase();
+
+    for (var i = 0; i < SUPPORTED.length; i++) {
+      if (SUPPORTED[i].toLowerCase() === lower) return SUPPORTED[i];
+    }
+
+    /* Chinese is resolved before the generic base match, otherwise any zh-*
+       would fall into zh-Hant through its "zh" base. */
+    if (lower === 'zh' || lower.indexOf('zh-') === 0) {
+      if (/hant|\b(tw|hk|mo)\b/.test(lower)) return 'zh-Hant';
+      return ZH_HANS_TO_HANT ? 'zh-Hant' : null;
+    }
+
+    var base = lower.split('-')[0];
+    for (var j = 0; j < SUPPORTED.length; j++) {
+      if (SUPPORTED[j].split('-')[0].toLowerCase() === base) return SUPPORTED[j];
+    }
+    return null;
+  }
+
+  function resolveLang() {
+    var candidates = [];
+    var q = params().get('lang');
+    if (q) candidates.push(q);
+    var navLangs = navigator.languages && navigator.languages.length
+      ? navigator.languages
+      : [navigator.language];
+    candidates = candidates.concat(navLangs);
+
+    for (var i = 0; i < candidates.length; i++) {
+      var hit = matchOne(candidates[i]);
+      if (hit) return hit;
+    }
+    return 'en';
+  }
+
+  /* ==========================================================================
+     RENDER
+     ======================================================================== */
+  function render() {
+    var lang = resolveLang();
+    var dict = I18N[lang] || I18N.en;
+    var fallback = I18N.en;
+
+    document.documentElement.lang = lang;
+    document.documentElement.dir = 'ltr';
+    document.title = dict.doc_title || fallback.doc_title;
+
+    var nodes = document.querySelectorAll('[data-i18n]');
+    for (var i = 0; i < nodes.length; i++) {
+      var key = nodes[i].getAttribute('data-i18n');
+      var value = dict[key];
+      if (value === undefined) value = fallback[key];
+      if (value !== undefined) nodes[i].textContent = value;
+    }
+
+    /* Optional version chip: ?v=3.2.0 */
+    var v = params().get('v');
+    if (v && /^[\w.\-]{1,24}$/.test(v)) {
+      var chip = document.getElementById('version');
+      chip.textContent = 'v' + v.replace(/^v/i, '');
+      chip.hidden = false;
+    }
+
+    /* Per-locale screenshots, when that locale ships its own set. */
+    if (LOCALIZED_SHOTS.indexOf(lang) !== -1) {
+      var shots = document.querySelectorAll('[data-shot]');
+      for (var k = 0; k < shots.length; k++) {
+        var n = shots[k].getAttribute('data-shot');
+        var src = shots[k].querySelector('source');
+        var img = shots[k].querySelector('img');
+        if (src) src.srcset = 'assets/' + lang + '/shot-' + n + '.webp';
+        if (img) img.src = 'assets/' + lang + '/shot-' + n + '.png';
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();
+</script>
+
+</body>
+</html>
