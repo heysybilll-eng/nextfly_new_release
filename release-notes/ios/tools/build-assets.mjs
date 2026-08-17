@@ -22,14 +22,27 @@ if (!SRC) {
   process.exit(2);
 }
 
-/** design upload name -> shipped asset name + max rendered width in CSS px */
+/**
+ * design upload -> shipped asset + max rendered width in CSS px.
+ *
+ * The upload-to-feature mapping is NOT in filename order — it comes from the
+ * design handoff's Assets section and is the authority here:
+ *   1.PNG       -> feature 1, interface polish
+ *   Group 2.png -> feature 2, account linking
+ *   3.PNG       -> feature 3, Dark Mode
+ *   2.PNG       -> feature 4, membership expiry      (note: 2 and 3 are swapped)
+ *   4.PNG       -> feature 5, trip stats
+ *
+ * Screenshots render at 66% of the 400px panel content box (~264 CSS px), so
+ * 600px covers 2x with headroom. The rocket renders at up to 340px.
+ */
 const MAP = [
-  { from: '1.PNG',                       to: 'shot-1',  maxCssWidth: 380 },
-  { from: '2.PNG',                       to: 'shot-2',  maxCssWidth: 380 },
-  { from: '3.PNG',                       to: 'shot-3',  maxCssWidth: 380 },
-  { from: '4.PNG',                       to: 'shot-4',  maxCssWidth: 380 },
-  { from: 'rocket-lineart-even@2x.png',  to: 'rocket',  maxCssWidth: 132 },
-  { from: 'Group 2.png',                 to: 'group-2', maxCssWidth: 96  }
+  { from: '1.PNG',                          to: 'shot-1',          maxCssWidth: 300 },
+  { from: 'Group 2.png',                    to: 'shot-2',          maxCssWidth: 300 },
+  { from: '3.PNG',                          to: 'shot-3',          maxCssWidth: 300 },
+  { from: '2.PNG',                          to: 'shot-4',          maxCssWidth: 300 },
+  { from: '4.PNG',                          to: 'shot-5',          maxCssWidth: 300 },
+  { from: 'rocket-lineart-even@2x.png',     to: 'rocket-lineart',  maxCssWidth: 340 }
 ];
 
 const DPR = 2;

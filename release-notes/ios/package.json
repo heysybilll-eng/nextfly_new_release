@@ -11,7 +11,8 @@
     "diff": "node tools/diff.mjs",
     "styles": "node tools/assert-styles.mjs",
     "inline": "node tools/inline.mjs",
-    "check": "node tools/shot.mjs --all"
+    "spec": "node tools/assert-spec.mjs",
+    "check": "node tools/assert-spec.mjs && node tools/shot.mjs --all"
   },
   "devDependencies": {
     "pixelmatch": "^6.0.0",

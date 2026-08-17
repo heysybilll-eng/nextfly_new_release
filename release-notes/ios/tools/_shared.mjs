@@ -6,8 +6,11 @@ export const PAGE = path.join(ROOT, 'index.html');
 export const ASSETS = path.join(ROOT, 'assets');
 export const OUT = path.join(ROOT, '.out');
 
-/** Every locale the page ships. Keep in sync with SUPPORTED in index.html. */
-export const LOCALES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-Hant', 'id', 'hi', 'ru'];
+/** Every locale the page ships. Keep in sync with CODES in index.html. */
+export const LOCALES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-TW', 'id', 'hi', 'ru'];
+
+/** The design ships as auto, so both schemes are part of the deliverable. */
+export const SCHEMES = ['light', 'dark'];
 
 /**
  * Viewports. `gate` marks the width the design was drawn at — that is the one
@@ -34,10 +37,11 @@ export function hasFlag(flag) {
   return process.argv.includes(flag);
 }
 
-export function pageUrl({ lang, version } = {}) {
+export function pageUrl({ lang, version, theme } = {}) {
   const q = new URLSearchParams();
   if (lang) q.set('lang', lang);
   if (version) q.set('v', version);
+  if (theme) q.set('theme', theme);
   const qs = q.toString();
   return `file://${PAGE}${qs ? '?' + qs : ''}`;
 }

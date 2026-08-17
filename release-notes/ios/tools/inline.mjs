@@ -52,15 +52,6 @@ if (missing.size) {
   for (const m of missing) console.warn(`  - ${m}`);
 }
 
-// The runtime per-locale screenshot swap builds paths at runtime and cannot
-// work once assets are data URIs. Neutralise it rather than leave it to 404.
-if (html.includes('LOCALIZED_SHOTS')) {
-  html = html.replace(
-    /var LOCALIZED_SHOTS = \[[^\]]*\];/,
-    'var LOCALIZED_SHOTS = []; /* standalone build: assets are inlined, runtime swap disabled */'
-  );
-}
-
 const out = path.join(ROOT, 'index.standalone.html');
 await fs.writeFile(out, html);
 

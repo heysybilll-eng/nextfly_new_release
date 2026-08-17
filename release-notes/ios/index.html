@@ -3,737 +3,883 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Light-only lock: prevents WebKit from auto-darkening the page when the OS is in dark mode.
-     A hardcoded white background alone does NOT stop this. -->
-<meta name="color-scheme" content="light">
-<meta name="supported-color-schemes" content="light">
-<meta name="theme-color" content="#FFFFFF">
+<!-- The design ships as `auto`: the page follows the OS. Declaring both schemes
+     is what stops WebKit from applying its own auto-darkening on top of ours. -->
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
-<title>What's new</title>
+<title>What's New</title>
 <style>
 /* ============================================================================
-   1. RESET
+   RESET
    ========================================================================== */
 *, *::before, *::after { box-sizing: border-box; }
-html, body, h1, h2, p, figure, ul, li { margin: 0; padding: 0; }
-ul { list-style: none; }
-img { display: block; max-width: 100%; height: auto; }
+html, body, h1, h2, p, div, button { margin: 0; padding: 0; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; }
 
 /* ============================================================================
-   2. TOKENS
+   TOKENS  —  ported verbatim from the design handoff
    ---------------------------------------------------------------------------
-   PLACEHOLDER VALUES. Every custom property below is replaced verbatim by the
-   Claude Design bundle once it lands:
-     _ds/fused-design-system-f83c2a1e-.../tokens/{colors,fonts,radius,spacing,typography}.css
-   Do not re-derive these by eye from a screenshot — port the token files.
-   Nothing below this block should contain a literal colour, radius or spacing
-   value; everything references a var() so the re-skin is a token swap.
+   Light is the base. Dark is applied two ways: by OS preference (production
+   behaviour) and by an explicit data-scheme attribute (QA override only).
+   Every colour on this page resolves through one of these.
    ========================================================================== */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
-  /* -- colour ------------------------------------------------------------- */
-  --c-bg:            #FFFFFF;
-  --c-surface:       #F5F5F7;
-  --c-text:          #1D1D1F;
-  --c-text-muted:    #6E6E73;
-  --c-text-subtle:   #8E8E93;
-  --c-accent:        #0071E3;
-  --c-hairline:      rgba(0, 0, 0, 0.08);
-  --c-shot-frame:    rgba(0, 0, 0, 0.06);
-  --c-shot-shadow:   rgba(0, 0, 0, 0.10);
+  --surface-bg:        #FFFFFF;
+  --surface-elevated:  #F7F7F9;
+  --surface-card:      #F2F2F7;
+  --border-hairline:   #E3E3E8;
+  --text-primary:      #16161A;
+  --text-secondary:    #6E6E73;
+  --text-tertiary:     #AEAEB2;
+  --cta-inverse-fill:  #16161A;
+  --cta-inverse-text:  #FFFFFF;
 
-  /* -- typography --------------------------------------------------------- */
-  --f-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-            system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-            "Noto Sans", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
-            "Noto Sans Devanagari", sans-serif;
+  --accent-primary:    #3E6AE1;
+  --marker-gold:       #D9A441;
 
-  --fs-eyebrow:  13px;  --lh-eyebrow:  1.30;  --ls-eyebrow:  0.06em;
-  --fs-h1:       32px;  --lh-h1:       1.16;  --ls-h1:      -0.021em;
-  --fs-lead:     17px;  --lh-lead:     1.50;  --ls-lead:    -0.011em;
-  --fs-h2:       20px;  --lh-h2:       1.28;  --ls-h2:      -0.015em;
-  --fs-body:     15px;  --lh-body:     1.55;  --ls-body:    -0.006em;
-  --fs-caption:  13px;  --lh-caption:  1.45;  --ls-caption:  0em;
+  /* SF Pro / SF Pro Rounded are the real iOS system faces. The design
+     prototype substituted MiSans only because SF Pro is not licensable there;
+     on device these resolve to the genuine system fonts. `ui-rounded` is how
+     Safari exposes SF Pro Rounded. Non-Latin scripts fall through to the
+     platform faces (PingFang, Hiragino, Apple SD Gothic Neo, Devanagari
+     Sangam MN) via -apple-system. */
+  --family-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                 "Noto Sans", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
+                 "Noto Sans Devanagari", sans-serif;
+  --family-display: ui-rounded, "SF Pro Rounded", -apple-system,
+                    BlinkMacSystemFont, system-ui, var(--family-body);
 
-  --fw-regular: 400;
-  --fw-medium:  500;
-  --fw-semibold: 600;
-  --fw-bold:    700;
+  --page-max: 480px;
+  --gutter: 18px;
+}
 
-  /* -- spacing ------------------------------------------------------------ */
-  --sp-1:  4px;   --sp-2:  8px;   --sp-3: 12px;   --sp-4: 16px;
-  --sp-5: 20px;   --sp-6: 24px;   --sp-7: 32px;   --sp-8: 40px;
-  --sp-9: 56px;   --sp-10: 72px;
-
-  /* -- radius ------------------------------------------------------------- */
-  --r-sm: 8px;  --r-md: 14px;  --r-lg: 20px;  --r-xl: 28px;
-
-  /* -- layout ------------------------------------------------------------- */
-  --page-max: 420px;      /* design canvas width — confirm against .dc.html */
-  --page-gutter: var(--sp-5);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme="light"]) {
+    --surface-bg:       #000000;
+    --surface-elevated: #1C1C1E;
+    --surface-card:     #232326;
+    --border-hairline:  #2C2C2E;
+    --text-primary:     #FFFFFF;
+    --text-secondary:   #8E8E93;
+    --text-tertiary:    #636366;
+    --cta-inverse-fill: #FFFFFF;
+    --cta-inverse-text: #000000;
+  }
+}
+:root[data-scheme="dark"] {
+  --surface-bg:       #000000;
+  --surface-elevated: #1C1C1E;
+  --surface-card:     #232326;
+  --border-hairline:  #2C2C2E;
+  --text-primary:     #FFFFFF;
+  --text-secondary:   #8E8E93;
+  --text-tertiary:    #636366;
+  --cta-inverse-fill: #FFFFFF;
+  --cta-inverse-text: #000000;
 }
 
 /* ============================================================================
-   3. BASE + WEBVIEW HARDENING
+   BASE + WEBVIEW HARDENING
    ========================================================================== */
 html {
-  -webkit-text-size-adjust: 100%;   /* stop iOS inflating text on rotate */
+  -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 body {
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-family: var(--f-sans);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
+  min-height: 100vh;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-family: var(--family-body);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 
-  /* WebView chrome removal */
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;      /* no long-press "Save Image" sheet */
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-
-  /* kill rubber-band overscroll revealing a white/grey band behind the page */
   overscroll-behavior-y: none;
 }
-
-/* Body copy stays selectable — users copy support text out of release notes. */
-.feature__body, .sync__body, .footer__body { -webkit-user-select: text; user-select: text; }
+.f__body, .parity__body, .feedback { -webkit-user-select: text; user-select: text; }
 
 /* ============================================================================
-   4. LAYOUT
+   HEADER  —  sticky, no bottom border
    ========================================================================== */
-.page {
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface-bg);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.hdr__in {
   max-width: var(--page-max);
-  margin-inline: auto;
-  padding-inline: var(--page-gutter);
-  /* Safe areas: the WebView is frequently presented full-bleed under the
-     notch / Dynamic Island and over the home indicator. */
-  padding-top: calc(env(safe-area-inset-top, 0px) + var(--sp-8));
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--sp-10));
-  padding-left: max(var(--page-gutter), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--page-gutter), env(safe-area-inset-right, 0px));
+  margin: 0 auto;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-
-/* ============================================================================
-   5. HERO
-   ========================================================================== */
-.hero { text-align: center; }
-
-/* <picture> is display:inline by default — width and `margin:auto` are both
-   inert on it until it is made a block. */
-.hero__art {
-  display: block;
-  width: 132px;
-  margin: 0 auto var(--sp-6);
-}
-.hero__art img { width: 100%; }
-
-.hero__eyebrow {
-  font-size: var(--fs-eyebrow);
-  line-height: var(--lh-eyebrow);
-  letter-spacing: var(--ls-eyebrow);
-  font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  color: var(--c-accent);
-  margin-bottom: var(--sp-3);
-}
-
-.hero__title {
-  font-size: var(--fs-h1);
-  line-height: var(--lh-h1);
-  letter-spacing: var(--ls-h1);
-  font-weight: var(--fw-bold);
-  text-wrap: balance;         /* keeps 2-line titles evenly split in de/ru */
-  margin-bottom: var(--sp-3);
-}
-
-.hero__intro {
-  font-size: var(--fs-lead);
-  line-height: var(--lh-lead);
-  letter-spacing: var(--ls-lead);
-  color: var(--c-text-muted);
-  text-wrap: pretty;
-}
-
-.hero__version {
-  display: inline-block;
-  margin-top: var(--sp-4);
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: 999px;
-  background: var(--c-surface);
-  color: var(--c-text-subtle);
-  font-size: var(--fs-caption);
-  line-height: var(--lh-caption);
-  font-weight: var(--fw-medium);
-  font-variant-numeric: tabular-nums;
-}
-.hero__version[hidden] { display: none; }
-
-/* ============================================================================
-   6. FEATURES
-   ========================================================================== */
-.features { margin-top: var(--sp-10); }
-
-.feature + .feature { margin-top: var(--sp-9); }
-
-.feature__title {
-  font-size: var(--fs-h2);
-  line-height: var(--lh-h2);
-  letter-spacing: var(--ls-h2);
-  font-weight: var(--fw-semibold);
-  text-wrap: balance;
-  margin-bottom: var(--sp-2);
-}
-
-.feature__body {
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  letter-spacing: var(--ls-body);
-  color: var(--c-text-muted);
-  text-wrap: pretty;
-}
-
-/* Long German compounds / unbroken Russian tokens must never widen the page. */
-.feature__title, .feature__body, .hero__title, .sync__title { overflow-wrap: anywhere; }
-
-.feature__shot {
-  display: block;
-  margin-top: var(--sp-5);
-  border-radius: var(--r-xl);
+.hdr__title {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
   overflow: hidden;
-  background: var(--c-surface);
-  box-shadow: 0 1px 2px var(--c-shot-shadow), 0 0 0 1px var(--c-shot-frame) inset;
+  text-overflow: ellipsis;
 }
-.feature__shot img { width: 100%; }
+.langbtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: none;
+  transition: filter 150ms, transform 60ms;
+}
+.langbtn:active { transform: scale(0.97); }
+@media (hover: hover) { .langbtn:hover { filter: brightness(1.15); } }
 
 /* ============================================================================
-   7. SYNC CALLOUT
+   BODY COLUMN
    ========================================================================== */
-.sync {
-  margin-top: var(--sp-10);
-  padding: var(--sp-7) var(--sp-6);
-  border-radius: var(--r-lg);
-  background: var(--c-surface);
-  text-align: center;
+.body {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 56px;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
-.sync__art { display: block; width: 96px; margin: 0 auto var(--sp-5); }
-.sync__art img { width: 100%; }
-.sync__title {
-  font-size: var(--fs-h2);
-  line-height: var(--lh-h2);
-  letter-spacing: var(--ls-h2);
-  font-weight: var(--fw-semibold);
-  text-wrap: balance;
-  margin-bottom: var(--sp-2);
+
+/* -- hero ------------------------------------------------------------------ */
+.hero { display: flex; flex-direction: column; gap: 12px; }
+.hero-art {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin: 0 auto 8px;
+  filter: none;
 }
-.sync__body {
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  letter-spacing: var(--ls-body);
-  color: var(--c-text-muted);
+/* Black line art on a black ground needs inverting; the asset has no dark
+   counterpart. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme="light"]) .hero-art { filter: invert(1); }
+}
+:root[data-scheme="dark"] .hero-art { filter: invert(1); }
+
+.hero__heading {
+  font-family: var(--family-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 8px;
+}
+.hero__intro {
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- section label --------------------------------------------------------- */
+.seclabel { display: flex; flex-direction: column; gap: 12px; }
+.seclabel__text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+/* The only hairline rule on the page. */
+.seclabel__rule { height: 1px; background: var(--border-hairline); }
+
+/* -- feature blocks -------------------------------------------------------- */
+.f { display: flex; flex-direction: column; gap: 10px; }
+.f__title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+.f__body {
+  font-size: 17px;
+  line-height: 1.7;     /* blocks with highlighted phrases need the room */
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.f--plain .f__body { line-height: 1.45; }   /* block 5 carries no highlights */
+
+/* Hand-drawn marker underline, exactly as specified in the handoff. */
+.mark {
+  color: var(--text-primary);
+  font-weight: 600;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20200%2014%27%20preserveAspectRatio=%27none%27%3E%3Cpath%20d=%27M4%2010c30-5%2058%202%2086-2s62-2%20106%203%27%20stroke=%27%23D9A441%27%20stroke-width=%275%27%20stroke-linecap=%27round%27%20fill=%27none%27%20opacity=%27.8%27/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 9px;
+  padding-bottom: 3px;
+}
+
+/* -- screenshot panel ------------------------------------------------------ */
+.shot {
+  margin-top: 6px;
+  border-radius: 16px;
+  background: var(--surface-elevated);
+  padding: 22px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+/* <picture> is display:inline and would otherwise become the flex item,
+   leaving the img unsized. display:contents makes the img the direct child so
+   all sizing below applies to it. */
+.shot picture { display: contents; }
+.shot img {
+  width: 66%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-hairline);
+}
+
+/* -- parity card ----------------------------------------------------------- */
+.parity {
+  border-radius: 16px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.parity__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-primary);
+}
+.parity__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.parity__body {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- feedback -------------------------------------------------------------- */
+.feedback {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
   text-wrap: pretty;
 }
 
 /* ============================================================================
-   8. FOOTER
+   LANGUAGE SHEET
    ========================================================================== */
-.footer {
-  margin-top: var(--sp-9);
-  padding-top: var(--sp-7);
-  border-top: 1px solid var(--c-hairline);
-  text-align: center;
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: scrim-in 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.footer__title {
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  font-weight: var(--fw-semibold);
-  margin-bottom: var(--sp-1);
+.sheet[hidden] { display: none; }
+.sheet__panel {
+  width: 100%;
+  max-width: var(--page-max);
+  background: var(--surface-elevated);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 18px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  max-height: 76vh;
+  overflow-y: auto;
+  animation: sheet-up 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.footer__body {
-  font-size: var(--fs-caption);
-  line-height: var(--lh-caption);
-  letter-spacing: var(--ls-caption);
-  color: var(--c-text-subtle);
-  text-wrap: pretty;
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet__grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-hairline);
+  margin: 0 auto 14px;
 }
+.sheet__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding-bottom: 8px;
+}
+.sheet__list { display: flex; flex-direction: column; }
+.sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 2px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 150ms, transform 60ms;
+}
+.sheet__row:active { transform: scale(0.99); }
+@media (hover: hover) { .sheet__row:hover { filter: brightness(1.15); } }
+.sheet__check { display: none; color: var(--accent-primary); }
+.sheet__row[aria-selected="true"] .sheet__check { display: flex; }
+
+body.sheet-open { overflow: hidden; }
 
 /* ============================================================================
-   9. LOCALE TYPOGRAPHY
+   LOCALE TYPOGRAPHY
    ---------------------------------------------------------------------------
-   Latin-tuned negative letter-spacing and 1.5 line-height do not transfer to
-   CJK or Devanagari. These are :lang() rules, not JS branches.
+   The design specifies one Latin-tuned treatment. Two adjustments are applied
+   on top of it because the design's values clip or crowd non-Latin scripts —
+   both are corrections needed to render the specified design faithfully, not
+   restyling.
    ========================================================================== */
 
-/* CJK: never break inside words with the Latin rule set — it violates
-   kinsoku (禁则) line-breaking. Reset the negative tracking too. */
-:is(:lang(ja), :lang(ko), :lang(zh-Hant)) :is(
-  .hero__title, .hero__intro, .feature__title, .feature__body,
-  .sync__title, .sync__body, .footer__body
-) {
+/* Devanagari matras and conjuncts extend past the Latin em box; feature titles
+   at line-height 1.2 clip them. */
+:lang(hi) .f__title { line-height: 1.45; }
+:lang(hi) .hdr__title, :lang(hi) .sheet__title, :lang(hi) .parity__title { line-height: 1.4; }
+
+/* Negative tracking is tuned for Latin and visibly crowds CJK. Kinsoku
+   line-breaking also needs word-break left alone. */
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__title, .hdr__title, .parity__title, .sheet__title) {
   letter-spacing: 0;
-  line-height: 1.7;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__body, .parity__body, .hero__intro, .feedback) {
   word-break: normal;
   line-break: strict;
-  overflow-wrap: normal;
 }
-:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .hero__title { line-height: 1.34; }
-:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .feature__title,
-:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .sync__title { line-height: 1.45; }
-/* Uppercasing is meaningless for CJK and adds unwanted tracking. */
-:is(:lang(ja), :lang(ko), :lang(zh-Hant)) .hero__eyebrow {
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) .f__title { line-height: 1.35; }
 
-/* Devanagari: matras and conjuncts sit outside the Latin em box and get
-   clipped at 1.5. Extra leading is required, not cosmetic. */
-:lang(hi) :is(.hero__intro, .feature__body, .sync__body, .footer__body) { line-height: 1.75; }
-:lang(hi) :is(.hero__title, .feature__title, .sync__title) { line-height: 1.45; letter-spacing: 0; }
-:lang(hi) .hero__eyebrow { text-transform: none; letter-spacing: 0.02em; }
+/* Long German compounds and Russian tokens must never widen the page. */
+.f__title, .hero__heading, .parity__title { overflow-wrap: anywhere; }
 
-/* de/ru run ~35% longer than en — ease the display size so titles keep to
-   two lines at 320px. */
-:is(:lang(de), :lang(ru)) .hero__title { font-size: calc(var(--fs-h1) * 0.88); }
-:is(:lang(de), :lang(ru)) .feature__title { font-size: calc(var(--fs-h2) * 0.94); }
-:lang(ru) .hero__eyebrow { letter-spacing: 0.04em; }
-
-/* ============================================================================
-   10. NARROW SCREENS (iPhone SE, 320pt)
-   ========================================================================== */
-@media (max-width: 359px) {
-  :root {
-    --fs-h1: 28px;
-    --fs-h2: 18px;
-    --page-gutter: var(--sp-4);
-  }
-  .hero__art { width: 112px; }
-}
-
-/* ============================================================================
-   11. ACCESSIBILITY
-   ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
 </style>
 </head>
 <body>
 
-<main class="page">
+<header class="hdr">
+  <div class="hdr__in">
+    <div class="hdr__title" id="navTitle"></div>
+    <button type="button" class="langbtn" id="langBtn" aria-haspopup="dialog" aria-expanded="false">
+      <span id="langBadge"></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+  </div>
+</header>
 
-  <header class="hero">
-    <picture class="hero__art">
-      <source srcset="assets/rocket.webp" type="image/webp">
-      <img src="assets/rocket.png" alt="" width="264" height="264" fetchpriority="high" decoding="async">
+<main class="body">
+
+  <div class="hero">
+    <picture>
+      <source srcset="assets/rocket-lineart.webp" type="image/webp">
+      <img class="hero-art" src="assets/rocket-lineart.png" alt=""
+           width="680" height="680" fetchpriority="high" decoding="async">
     </picture>
-    <p class="hero__eyebrow" data-i18n="hero_eyebrow"></p>
-    <h1 class="hero__title" data-i18n="hero_title"></h1>
-    <p class="hero__intro" data-i18n="hero_intro"></p>
-    <p class="hero__version" id="version" hidden></p>
-  </header>
-
-  <div class="features">
-
-    <section class="feature">
-      <h2 class="feature__title" data-i18n="f_polish_title"></h2>
-      <p class="feature__body" data-i18n="f_polish_body"></p>
-    </section>
-
-    <section class="feature">
-      <h2 class="feature__title" data-i18n="f_account_title"></h2>
-      <p class="feature__body" data-i18n="f_account_body"></p>
-      <picture class="feature__shot" data-shot="1">
-        <source srcset="assets/shot-1.webp" type="image/webp">
-        <img src="assets/shot-1.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
-      </picture>
-    </section>
-
-    <section class="feature">
-      <h2 class="feature__title" data-i18n="f_dark_title"></h2>
-      <p class="feature__body" data-i18n="f_dark_body"></p>
-      <picture class="feature__shot" data-shot="2">
-        <source srcset="assets/shot-2.webp" type="image/webp">
-        <img src="assets/shot-2.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
-      </picture>
-    </section>
-
-    <section class="feature">
-      <h2 class="feature__title" data-i18n="f_expiry_title"></h2>
-      <p class="feature__body" data-i18n="f_expiry_body"></p>
-      <picture class="feature__shot" data-shot="3">
-        <source srcset="assets/shot-3.webp" type="image/webp">
-        <img src="assets/shot-3.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
-      </picture>
-    </section>
-
-    <section class="feature">
-      <h2 class="feature__title" data-i18n="f_stats_title"></h2>
-      <p class="feature__body" data-i18n="f_stats_body"></p>
-      <picture class="feature__shot" data-shot="4">
-        <source srcset="assets/shot-4.webp" type="image/webp">
-        <img src="assets/shot-4.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
-      </picture>
-    </section>
-
+    <h1 class="hero__heading" id="versionHeading"></h1>
+    <p class="hero__intro" id="intro"></p>
   </div>
 
-  <section class="sync">
-    <picture class="sync__art">
-      <source srcset="assets/group-2.webp" type="image/webp">
-      <img src="assets/group-2.png" alt="" width="192" height="192" loading="lazy" decoding="async">
-    </picture>
-    <h2 class="sync__title" data-i18n="sync_title"></h2>
-    <p class="sync__body" data-i18n="sync_body"></p>
+  <div class="seclabel">
+    <div class="seclabel__text" id="sectionLabel"></div>
+    <div class="seclabel__rule"></div>
+  </div>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f1t"></h2>
+    <p class="f__body" data-t="f1b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-1.webp" type="image/webp"><img src="assets/shot-1.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
   </section>
 
-  <footer class="footer">
-    <p class="footer__title" data-i18n="footer_title"></p>
-    <p class="footer__body" data-i18n="footer_body"></p>
-  </footer>
+  <section class="f">
+    <h2 class="f__title" data-t="f2t"></h2>
+    <p class="f__body" data-t="f2b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-2.webp" type="image/webp"><img src="assets/shot-2.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f3t"></h2>
+    <p class="f__body" data-t="f3b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-3.webp" type="image/webp"><img src="assets/shot-3.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f4t"></h2>
+    <p class="f__body" data-t="f4b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-4.webp" type="image/webp"><img src="assets/shot-4.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f f--plain">
+    <h2 class="f__title" data-t="f5t"></h2>
+    <p class="f__body" data-t="f5b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-5.webp" type="image/webp"><img src="assets/shot-5.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <div class="parity">
+    <div class="parity__row">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      <div class="parity__title" data-t="parityTitle"></div>
+    </div>
+    <p class="parity__body" data-t="parityBody"></p>
+  </div>
+
+  <p class="feedback" data-t="feedback"></p>
 
 </main>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet__panel" id="sheetPanel">
+    <div class="sheet__grabber"></div>
+    <div class="sheet__title" id="sheetTitle"></div>
+    <div class="sheet__list" id="sheetList"></div>
+  </div>
+</div>
 
 <script>
 (function () {
   'use strict';
 
+  var CODES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-TW', 'id', 'hi', 'ru'];
+
+  var BADGES = {
+    en: 'EN', fr: 'FR', de: 'DE', it: 'IT', es: 'ES', ja: 'JA',
+    ko: 'KO', 'zh-TW': '中文', id: 'ID', hi: 'HI', ru: 'RU'
+  };
+
   /* ==========================================================================
-     LOCALES
+     COPY
      --------------------------------------------------------------------------
-     All 11 are LTR, so there is no dir="rtl" branch.
-     Translations are drafts — see README.md "Translations" before shipping.
+     Final strings, ported verbatim from the design handoff.
+     [[...]] marks a phrase that carries the gold marker underline. The handoff
+     recommends an explicit markup token over substring matching, so the marks
+     are baked into each locale's own string. This also removes a defect in the
+     prototype, where F1_MARK was keyed "zh" while STRINGS was keyed "zh-TW",
+     so Traditional Chinese silently lost its feature-1 highlight.
      ======================================================================== */
-  var SUPPORTED = ['en','fr','de','it','es','ja','ko','zh-Hant','id','hi','ru'];
-
-  /* Simplified Chinese has no dedicated locale here. Traditional Chinese is a
-     far closer read for those users than English, so zh-Hans resolves to
-     zh-Hant. Set to false to send zh-Hans to English instead. */
-  var ZH_HANS_TO_HANT = true;
-
-  /* Locales that ship their own screenshot set under assets/<lang>/.
-     Empty = every locale uses the default English screenshots. Add a code here
-     only after the folder exists, so we never request a missing file. */
-  var LOCALIZED_SHOTS = [];
-
-  var I18N = {
-    'en': {
-      doc_title:      "What's new",
-      hero_eyebrow:   'iOS Update',
-      hero_title:     "Here's what's new",
-      hero_intro:     "A few things we think you'll like.",
-      f_polish_title: 'Interface polish',
-      f_polish_body:  'A round of refinements across the app — cleaner layouts and smoother transitions throughout.',
-      f_account_title:'Account linking & sync',
-      f_account_body: 'Link a Google or email account under Settings › Login & Security. Your account info now stays in sync across iOS and Android.',
-      f_dark_title:   'Dark Mode',
-      f_dark_body:    "It's finally here on iOS. It follows your system automatically, or you can switch it yourself anytime.",
-      f_expiry_title: 'Membership expiry',
-      f_expiry_body:  'Your profile now shows exactly when your membership ends.',
-      f_stats_title:  'Trip stats preview',
-      f_stats_body:   'A new card on My trips gives you a quick look at your travel numbers.',
-      sync_title:     'iOS and Android, fully in sync',
-      sync_body:      'From this version on, both platforms match on features and experience. Going forward, new features land on both at the same time.',
-      footer_title:   'Questions or ideas?',
-      footer_body:    'Just reach out — we read every one.'
+  var STRINGS = {
+    en: {
+      navTitle: "What's New", langName: 'English',
+      intro: "Here's what's new in this release.",
+      sectionLabel: 'NEW & IMPROVED',
+      f1t: 'Interface polish',
+      f1b: 'A pass over [[layout, spacing and type]] across the app, for a cleaner and calmer read.',
+      f2t: 'Account linking and sync',
+      f2b: 'Link a Google or email account under [[Settings › Login & Security]]. Your account information now stays in sync across [[iOS and Android]].',
+      f3t: 'Dark Mode',
+      f3b: '[[Dark Mode]] is here on iOS. It follows your system setting, or you can switch it yourself.',
+      f4t: 'Membership expiry date',
+      f4b: 'Your profile now shows exactly [[when your membership ends]].',
+      f5t: 'Trip stats preview card',
+      f5b: 'A new card on My trips gives you a quick look at your travel stats.',
+      parityTitle: 'iOS and Android, now in step',
+      parityBody: 'From this version on, both platforms match on features and experience. New features will land on iOS and Android together.',
+      feedback: 'Questions or ideas? Reach out — we read every message.',
+      langSheetTitle: 'Language'
     },
-    'fr': {
-      doc_title:      'Nouveautés',
-      hero_eyebrow:   'Mise à jour iOS',
-      hero_title:     'Voici les nouveautés',
-      hero_intro:     'Quelques améliorations qui devraient vous plaire.',
-      f_polish_title: 'Interface peaufinée',
-      f_polish_body:  "Une série d'améliorations dans toute l'application : des mises en page plus claires et des transitions plus fluides.",
-      f_account_title:'Association et synchronisation du compte',
-      f_account_body: 'Associez un compte Google ou e-mail dans Réglages › Connexion et sécurité. Les informations de votre compte restent désormais synchronisées entre iOS et Android.',
-      f_dark_title:   'Mode sombre',
-      f_dark_body:    "Il arrive enfin sur iOS. Il suit automatiquement votre système, ou vous pouvez le basculer vous-même à tout moment.",
-      f_expiry_title: "Expiration de l'abonnement",
-      f_expiry_body:  'Votre profil affiche désormais la date exacte de fin de votre abonnement.',
-      f_stats_title:  'Aperçu des statistiques de voyage',
-      f_stats_body:   'Une nouvelle carte dans Mes voyages vous donne un aperçu rapide de vos chiffres de voyage.',
-      sync_title:     'iOS et Android, parfaitement alignés',
-      sync_body:      'À partir de cette version, les deux plateformes offrent les mêmes fonctionnalités et la même expérience. Désormais, les nouveautés arrivent simultanément sur les deux.',
-      footer_title:   'Des questions ou des idées ?',
-      footer_body:    'Écrivez-nous — nous lisons chaque message.'
+    fr: {
+      navTitle: 'Nouveautés', langName: 'Français',
+      intro: 'Voici les nouveautés de cette version.',
+      sectionLabel: 'NOUVEAUTÉS ET AMÉLIORATIONS',
+      f1t: 'Interface affinée',
+      f1b: "[[Mise en page, espacements et typographie]] revus dans toute l'app, pour une lecture plus claire et plus sereine.",
+      f2t: 'Association et synchronisation du compte',
+      f2b: 'Associez un compte Google ou e-mail dans [[Réglages › Connexion et sécurité]]. Les informations de votre compte restent désormais synchronisées entre [[iOS et Android]].',
+      f3t: 'Mode sombre',
+      f3b: 'Le [[mode sombre]] arrive sur iOS. Il suit le réglage de votre système, ou vous pouvez le changer vous-même.',
+      f4t: "Date d'expiration de l'abonnement",
+      f4b: 'Votre profil indique désormais précisément [[la fin de votre abonnement]].',
+      f5t: 'Aperçu des statistiques de voyage',
+      f5b: 'Une nouvelle carte dans Mes voyages vous donne un aperçu rapide de vos chiffres de voyage.',
+      parityTitle: 'iOS et Android, enfin au même niveau',
+      parityBody: 'À partir de cette version, les deux plateformes offrent les mêmes fonctionnalités et la même expérience. Les nouveautés arriveront simultanément sur iOS et Android.',
+      feedback: 'Des questions ou des idées ? Écrivez-nous, nous lisons chaque message.',
+      langSheetTitle: 'Langue'
     },
-    'de': {
-      doc_title:      'Neuerungen',
-      hero_eyebrow:   'iOS-Update',
-      hero_title:     'Das ist neu',
-      hero_intro:     'Ein paar Dinge, die dir gefallen dürften.',
-      f_polish_title: 'Feinschliff für die Oberfläche',
-      f_polish_body:  'Zahlreiche Verbesserungen in der gesamten App – klarere Layouts und flüssigere Übergänge.',
-      f_account_title:'Konto verknüpfen & synchronisieren',
-      f_account_body: 'Verknüpfe unter Einstellungen › Anmeldung und Sicherheit ein Google- oder E-Mail-Konto. Deine Kontodaten bleiben jetzt zwischen iOS und Android synchron.',
-      f_dark_title:   'Dunkelmodus',
-      f_dark_body:    'Endlich auch auf iOS. Er folgt automatisch deinen Systemeinstellungen – oder du schaltest ihn jederzeit selbst um.',
-      f_expiry_title: 'Ablauf der Mitgliedschaft',
-      f_expiry_body:  'In deinem Profil siehst du jetzt genau, wann deine Mitgliedschaft endet.',
-      f_stats_title:  'Reisestatistik auf einen Blick',
-      f_stats_body:   'Eine neue Karte unter Meine Reisen zeigt dir deine Reisezahlen im Überblick.',
-      sync_title:     'iOS und Android vollständig im Gleichklang',
-      sync_body:      'Ab dieser Version bieten beide Plattformen denselben Funktionsumfang und dasselbe Erlebnis. Künftig erscheinen neue Funktionen zeitgleich auf beiden.',
-      footer_title:   'Fragen oder Ideen?',
-      footer_body:    'Schreib uns einfach – wir lesen jede Nachricht.'
+    de: {
+      navTitle: 'Neuerungen', langName: 'Deutsch',
+      intro: 'Das ist neu in dieser Version.',
+      sectionLabel: 'NEU UND VERBESSERT',
+      f1t: 'Feinschliff an der Oberfläche',
+      f1b: '[[Layout, Abstände und Typografie]] wurden app-weit überarbeitet – für ein klareres, ruhigeres Bild.',
+      f2t: 'Konto verknüpfen und synchronisieren',
+      f2b: 'Verknüpfe ein Google- oder E-Mail-Konto unter [[Einstellungen › Anmeldung & Sicherheit]]. Deine Kontodaten bleiben jetzt zwischen [[iOS und Android]] synchron.',
+      f3t: 'Dark Mode',
+      f3b: '[[Dark Mode]] ist jetzt auf iOS verfügbar. Er folgt deiner Systemeinstellung oder du schaltest ihn selbst um.',
+      f4t: 'Ablaufdatum der Mitgliedschaft',
+      f4b: 'Dein Profil zeigt jetzt genau, [[wann deine Mitgliedschaft endet]].',
+      f5t: 'Vorschaukarte für Reisestatistiken',
+      f5b: 'Eine neue Karte unter Meine Reisen zeigt deine Reisezahlen auf einen Blick.',
+      parityTitle: 'iOS und Android im Gleichschritt',
+      parityBody: 'Ab dieser Version stimmen beide Plattformen in Funktionen und Erlebnis überein. Neue Funktionen erscheinen künftig gleichzeitig auf iOS und Android.',
+      feedback: 'Fragen oder Ideen? Schreib uns – wir lesen jede Nachricht.',
+      langSheetTitle: 'Sprache'
     },
-    'it': {
-      doc_title:      'Novità',
-      hero_eyebrow:   'Aggiornamento iOS',
-      hero_title:     'Ecco le novità',
-      hero_intro:     'Alcune cose che pensiamo ti piaceranno.',
-      f_polish_title: 'Interfaccia rifinita',
-      f_polish_body:  "Una serie di miglioramenti in tutta l'app: layout più puliti e transizioni più fluide.",
-      f_account_title:'Collegamento e sincronizzazione account',
-      f_account_body: "Collega un account Google o e-mail in Impostazioni › Accesso e sicurezza. I dati del tuo account ora restano sincronizzati tra iOS e Android.",
-      f_dark_title:   'Modalità scura',
-      f_dark_body:    'Finalmente disponibile su iOS. Segue automaticamente il sistema, oppure puoi attivarla tu quando vuoi.',
-      f_expiry_title: "Scadenza dell'abbonamento",
-      f_expiry_body:  'Il tuo profilo ora mostra esattamente quando termina il tuo abbonamento.',
-      f_stats_title:  'Anteprima statistiche di viaggio',
-      f_stats_body:   'Una nuova scheda in I miei viaggi ti offre uno sguardo rapido sui tuoi numeri di viaggio.',
-      sync_title:     'iOS e Android, perfettamente allineati',
-      sync_body:      "Da questa versione entrambe le piattaforme offrono le stesse funzionalità e la stessa esperienza. D'ora in poi le novità arriveranno su entrambe nello stesso momento.",
-      footer_title:   'Domande o idee?',
-      footer_body:    'Scrivici pure: leggiamo ogni messaggio.'
+    it: {
+      navTitle: 'Novità', langName: 'Italiano',
+      intro: 'Ecco le novità di questa versione.',
+      sectionLabel: 'NOVITÀ E MIGLIORAMENTI',
+      f1t: 'Interfaccia rifinita',
+      f1b: "[[Layout, spaziature e tipografia]] rivisti in tutta l'app, per una lettura più pulita e ordinata.",
+      f2t: "Collegamento e sincronizzazione dell'account",
+      f2b: 'Collega un account Google o e-mail in [[Impostazioni › Accesso e sicurezza]]. Le informazioni del tuo account ora restano sincronizzate tra [[iOS e Android]].',
+      f3t: 'Modalità scura',
+      f3b: "La [[modalità scura]] arriva su iOS. Segue l'impostazione di sistema, oppure puoi cambiarla tu.",
+      f4t: "Scadenza dell'abbonamento",
+      f4b: "Il tuo profilo ora mostra esattamente [[quando termina l'abbonamento]].",
+      f5t: 'Anteprima statistiche di viaggio',
+      f5b: 'Una nuova scheda in I miei viaggi ti mostra i tuoi numeri di viaggio a colpo d’occhio.',
+      parityTitle: 'iOS e Android, ora allineati',
+      parityBody: 'Da questa versione le due piattaforme offrono le stesse funzioni e la stessa esperienza. Le novità arriveranno insieme su iOS e Android.',
+      feedback: 'Domande o idee? Scrivici: leggiamo ogni messaggio.',
+      langSheetTitle: 'Lingua'
     },
-    'es': {
-      doc_title:      'Novedades',
-      hero_eyebrow:   'Actualización de iOS',
-      hero_title:     'Esto es lo nuevo',
-      hero_intro:     'Algunas cosas que creemos que te gustarán.',
-      f_polish_title: 'Interfaz pulida',
-      f_polish_body:  'Una tanda de mejoras en toda la app: diseños más limpios y transiciones más fluidas.',
-      f_account_title:'Vinculación y sincronización de la cuenta',
-      f_account_body: 'Vincula una cuenta de Google o de correo en Ajustes › Inicio de sesión y seguridad. Los datos de tu cuenta ahora se mantienen sincronizados entre iOS y Android.',
-      f_dark_title:   'Modo oscuro',
-      f_dark_body:    'Por fin llega a iOS. Sigue automáticamente tu sistema, o puedes cambiarlo tú cuando quieras.',
-      f_expiry_title: 'Vencimiento de la membresía',
-      f_expiry_body:  'Tu perfil ahora muestra exactamente cuándo termina tu membresía.',
-      f_stats_title:  'Vista previa de estadísticas de viaje',
-      f_stats_body:   'Una nueva tarjeta en Mis viajes te permite ver de un vistazo tus cifras de viaje.',
-      sync_title:     'iOS y Android, totalmente sincronizados',
-      sync_body:      'A partir de esta versión, ambas plataformas coinciden en funciones y experiencia. En adelante, las novedades llegarán a las dos al mismo tiempo.',
-      footer_title:   '¿Preguntas o ideas?',
-      footer_body:    'Escríbenos: leemos todos los mensajes.'
+    es: {
+      navTitle: 'Novedades', langName: 'Español',
+      intro: 'Esto es lo nuevo en esta versión.',
+      sectionLabel: 'NUEVO Y MEJORADO',
+      f1t: 'Interfaz pulida',
+      f1b: 'Revisamos [[diseño, espaciado y tipografía]] en toda la app para una lectura más limpia y tranquila.',
+      f2t: 'Vinculación y sincronización de la cuenta',
+      f2b: 'Vincula una cuenta de Google o de correo en [[Ajustes › Inicio de sesión y seguridad]]. La información de tu cuenta ahora se mantiene sincronizada entre [[iOS y Android]].',
+      f3t: 'Modo oscuro',
+      f3b: 'El [[modo oscuro]] ya está en iOS. Sigue el ajuste del sistema o puedes cambiarlo tú.',
+      f4t: 'Fecha de caducidad de la membresía',
+      f4b: 'Tu perfil ahora muestra exactamente [[cuándo termina tu membresía]].',
+      f5t: 'Tarjeta de estadísticas de viaje',
+      f5b: 'Una nueva tarjeta en Mis viajes te da un vistazo rápido a tus cifras de viaje.',
+      parityTitle: 'iOS y Android, ya a la par',
+      parityBody: 'A partir de esta versión, ambas plataformas coinciden en funciones y experiencia. Las novedades llegarán a iOS y Android al mismo tiempo.',
+      feedback: '¿Preguntas o ideas? Escríbenos: leemos cada mensaje.',
+      langSheetTitle: 'Idioma'
     },
-    'ja': {
-      doc_title:      '新機能',
-      hero_eyebrow:   'iOS アップデート',
-      hero_title:     '今回のアップデート',
-      hero_intro:     'きっと気に入っていただける変更をお届けします。',
-      f_polish_title: 'UI の細部を改善',
-      f_polish_body:  'アプリ全体を見直し、レイアウトをすっきりと、画面の切り替えをより滑らかにしました。',
-      f_account_title:'アカウント連携と同期',
-      f_account_body: '「設定 › ログインとセキュリティ」から Google アカウントまたはメールアドレスを連携できます。アカウント情報は iOS と Android の間で同期されるようになりました。',
-      f_dark_title:   'ダークモード',
-      f_dark_body:    'iOS にもついに登場。システム設定に自動で追従するほか、いつでも手動で切り替えられます。',
-      f_expiry_title: 'メンバーシップの有効期限',
-      f_expiry_body:  'プロフィール画面で、メンバーシップの終了日を正確に確認できるようになりました。',
-      f_stats_title:  '旅行統計プレビュー',
-      f_stats_body:   '「マイトリップ」に新しいカードが加わり、旅の記録をひと目で確認できます。',
-      sync_title:     'iOS と Android の機能が完全に揃いました',
-      sync_body:      'このバージョンから、両プラットフォームの機能と使い心地が一致します。今後の新機能は、両方に同時に登場します。',
-      footer_title:   'ご質問・ご要望はありますか？',
-      footer_body:    'お気軽にお寄せください。すべて目を通しています。'
+    ja: {
+      navTitle: '新機能', langName: '日本語',
+      intro: 'このバージョンの新しい内容をご紹介します。',
+      sectionLabel: '新機能と改善',
+      f1t: 'インターフェースの改善',
+      f1b: 'アプリ全体の[[レイアウト、余白、文字組み]]を見直し、より見やすく落ち着いた表示になりました。',
+      f2t: 'アカウントの連携と同期',
+      f2b: '「[[設定 › ログインとセキュリティ]]」から Google またはメールのアカウントを連携できます。アカウント情報は [[iOS と Android]] で同期されます。',
+      f3t: 'ダークモード',
+      f3b: 'iOS でも[[ダークモード]]に対応しました。システム設定に従うほか、手動で切り替えられます。',
+      f4t: 'メンバーシップの有効期限',
+      f4b: 'プロフィールに[[メンバーシップの終了日]]が表示されるようになりました。',
+      f5t: '旅行統計プレビューカード',
+      f5b: '「マイトリップ」に新しいカードが追加され、旅行の記録をひと目で確認できます。',
+      parityTitle: 'iOS と Android がそろいました',
+      parityBody: 'このバージョンから、両プラットフォームの機能と体験が一致します。今後の新機能は iOS と Android に同時に提供されます。',
+      feedback: 'ご質問やご提案はお気軽にお寄せください。すべて拝見しています。',
+      langSheetTitle: '言語'
     },
-    'ko': {
-      doc_title:      '새로운 기능',
-      hero_eyebrow:   'iOS 업데이트',
-      hero_title:     '이번 업데이트 소식',
-      hero_intro:     '마음에 드실 만한 변화를 준비했습니다.',
-      f_polish_title: '인터페이스 다듬기',
-      f_polish_body:  '앱 전반을 손봤습니다. 레이아웃은 더 깔끔하게, 화면 전환은 더 부드럽게 바뀌었습니다.',
-      f_account_title:'계정 연결 및 동기화',
-      f_account_body: '설정 › 로그인 및 보안에서 Google 또는 이메일 계정을 연결할 수 있습니다. 이제 계정 정보가 iOS와 Android 간에 동기화됩니다.',
-      f_dark_title:   '다크 모드',
-      f_dark_body:    '드디어 iOS에도 들어왔습니다. 시스템 설정을 자동으로 따르거나, 언제든 직접 전환할 수 있습니다.',
-      f_expiry_title: '멤버십 만료일',
-      f_expiry_body:  '이제 프로필에서 멤버십이 언제 끝나는지 정확히 확인할 수 있습니다.',
-      f_stats_title:  '여행 통계 미리보기',
-      f_stats_body:   '내 여행에 새 카드가 추가되어 여행 기록을 한눈에 볼 수 있습니다.',
-      sync_title:     'iOS와 Android, 이제 완전히 같아졌습니다',
-      sync_body:      '이번 버전부터 두 플랫폼의 기능과 경험이 일치합니다. 앞으로 새로운 기능은 양쪽에 동시에 제공됩니다.',
-      footer_title:   '궁금한 점이나 의견이 있으신가요?',
-      footer_body:    '편하게 알려주세요. 하나하나 모두 읽고 있습니다.'
+    ko: {
+      navTitle: '새로운 기능', langName: '한국어',
+      intro: '이번 버전의 새로운 내용입니다.',
+      sectionLabel: '새로운 기능 및 개선',
+      f1t: '인터페이스 개선',
+      f1b: '앱 전반의 [[레이아웃, 여백, 서자]]를 다듬어 더 깔끔하고 편안하게 보입니다.',
+      f2t: '계정 연결 및 동기화',
+      f2b: '[[설정 › 로그인 및 보안]]에서 Google 또는 이메일 계정을 연결할 수 있습니다. 계정 정보는 [[iOS와 Android]] 간에 동기화됩니다.',
+      f3t: '다크 모드',
+      f3b: 'iOS에서도 [[다크 모드]]를 지원합니다. 시스템 설정을 따르거나 직접 전환할 수 있습니다.',
+      f4t: '멤버십 만료일',
+      f4b: '프로필에서 [[멤버십 종료 시점]]을 정확하게 확인할 수 있습니다.',
+      f5t: '여행 통계 보기 카드',
+      f5b: '내 여행에 새 카드가 추가되어 여행 기록을 한눈에 보여줍니다.',
+      parityTitle: 'iOS와 Android가 같아지게 되었습니다',
+      parityBody: '이번 버전부터 두 플랫폼의 기능과 경황이 동일합니다. 앞으로 새로운 기능은 iOS와 Android에 동시에 제공됩니다.',
+      feedback: '질문이나 아이디어가 있으면 알려주세요. 모든 메시지를 읽고 있습니다.',
+      langSheetTitle: '언어'
     },
-    'zh-Hant': {
-      doc_title:      '新版功能',
-      hero_eyebrow:   'iOS 更新',
-      hero_title:     '這次更新有什麼新東西',
-      hero_intro:     '幾項我們覺得你會喜歡的改變。',
-      f_polish_title: '介面細節優化',
-      f_polish_body:  '我們重新梳理了整個 App，版面更清爽，轉場更順暢。',
-      f_account_title:'帳號綁定與同步',
-      f_account_body: '可在「設定 › 登入與安全性」綁定 Google 或電子郵件帳號，帳號資料現在會在 iOS 與 Android 之間保持同步。',
-      f_dark_title:   '深色模式',
-      f_dark_body:    '終於登陸 iOS。可自動跟隨系統設定，也能隨時自行切換。',
-      f_expiry_title: '會員到期時間',
-      f_expiry_body:  '個人檔案現在會清楚顯示你的會員何時到期。',
-      f_stats_title:  '行程數據預覽卡',
-      f_stats_body:   '「我的行程」新增卡片，讓你快速掌握自己的旅行數字。',
-      sync_title:     'iOS 與 Android 功能完全同步',
-      sync_body:      '從這個版本開始，兩個平台的功能與使用體驗完全一致。日後推出的新功能，也會同時登陸雙平台。',
-      footer_title:   '有問題或建議嗎？',
-      footer_body:    '歡迎隨時告訴我們，每一則我們都會看。'
+    'zh-TW': {
+      navTitle: '更新內容', langName: '繁體中文',
+      intro: '以下是這個版本的更新內容。',
+      sectionLabel: '新增與改進',
+      f1t: '介面優化',
+      f1b: '我們調整了全 App 的[[版面、間距與文字排列]]，閱讀起來更清晰、更沉穩。',
+      f2t: '帳號綁定與同步',
+      f2b: '可在「[[設定 › 登入與安全性]]」綁定 Google 或電子郵件帳號，帳號資料會在 [[iOS 與 Android]] 之間保持同步。',
+      f3t: '深色模式',
+      f3b: 'iOS 現已支援[[深色模式]]，可跟隨系統設定，也可自行切換。',
+      f4t: '會員到期日',
+      f4b: '個人檔案現在會顯示[[會員權益的確切到期時間]]。',
+      f5t: '旅程統計預覽卡',
+      f5b: '「我的旅程」新增統計卡片，快速掌握你的旅行數據。',
+      parityTitle: 'iOS 與 Android 全面同步',
+      parityBody: '自本版本起，兩個平台的功能與體驗完全一致；今後新功能將同步登陸 iOS 與 Android。',
+      feedback: '有任何問題或建議，歡迎告訴我們，每一則訊息我們都會閱讀。',
+      langSheetTitle: '語言'
     },
-    'id': {
-      doc_title:      'Yang baru',
-      hero_eyebrow:   'Pembaruan iOS',
-      hero_title:     'Apa yang baru kali ini',
-      hero_intro:     'Beberapa hal yang kami rasa akan kamu suka.',
-      f_polish_title: 'Antarmuka yang lebih rapi',
-      f_polish_body:  'Sejumlah penyempurnaan di seluruh aplikasi — tata letak lebih bersih dan transisi lebih mulus.',
-      f_account_title:'Penautan & sinkronisasi akun',
-      f_account_body: 'Tautkan akun Google atau email di Pengaturan › Login dan Keamanan. Informasi akunmu kini tetap sinkron antara iOS dan Android.',
-      f_dark_title:   'Mode Gelap',
-      f_dark_body:    'Akhirnya hadir di iOS. Mengikuti sistem secara otomatis, atau ganti sendiri kapan saja.',
-      f_expiry_title: 'Masa berlaku keanggotaan',
-      f_expiry_body:  'Profilmu kini menampilkan dengan tepat kapan keanggotaanmu berakhir.',
-      f_stats_title:  'Pratinjau statistik perjalanan',
-      f_stats_body:   'Kartu baru di Perjalanan Saya membantumu melihat sekilas angka perjalananmu.',
-      sync_title:     'iOS dan Android kini sepenuhnya selaras',
-      sync_body:      'Mulai versi ini, kedua platform punya fitur dan pengalaman yang sama. Ke depannya, fitur baru akan hadir di keduanya secara bersamaan.',
-      footer_title:   'Ada pertanyaan atau ide?',
-      footer_body:    'Hubungi kami saja — kami membaca semuanya.'
+    id: {
+      navTitle: 'Yang Baru', langName: 'Bahasa Indonesia',
+      intro: 'Berikut yang baru di versi ini.',
+      sectionLabel: 'BARU & DITINGKATKAN',
+      f1t: 'Antarmuka yang lebih rapi',
+      f1b: '[[Tata letak, jarak, dan tipografi]] ditata ulang di seluruh aplikasi agar lebih bersih dan nyaman dibaca.',
+      f2t: 'Penautan dan sinkronisasi akun',
+      f2b: 'Tautkan akun Google atau email di [[Pengaturan › Login & Keamanan]]. Informasi akun Anda kini tersinkron antara [[iOS dan Android]].',
+      f3t: 'Mode Gelap',
+      f3b: '[[Mode Gelap]] kini tersedia di iOS. Mengikuti pengaturan sistem, atau ubah sendiri kapan saja.',
+      f4t: 'Masa berlaku keanggotaan',
+      f4b: 'Profil Anda kini menampilkan [[kapan tepatnya keanggotaan berakhir]].',
+      f5t: 'Kartu pratinjau statistik perjalanan',
+      f5b: 'Kartu baru di Perjalanan saya menampilkan ringkasan angka perjalanan Anda.',
+      parityTitle: 'iOS dan Android kini setara',
+      parityBody: 'Mulai versi ini, kedua platform memiliki fitur dan pengalaman yang sama. Fitur baru akan hadir di iOS dan Android bersamaan.',
+      feedback: 'Ada pertanyaan atau ide? Hubungi kami — setiap pesan kami baca.',
+      langSheetTitle: 'Bahasa'
     },
-    'hi': {
-      doc_title:      'क्या नया है',
-      hero_eyebrow:   'iOS अपडेट',
-      hero_title:     'इस बार क्या नया है',
-      hero_intro:     'कुछ बदलाव जो आपको ज़रूर पसंद आएंगे।',
-      f_polish_title: 'इंटरफ़ेस में सुधार',
-      f_polish_body:  'पूरे ऐप में कई सुधार — साफ़-सुथरा लेआउट और ज़्यादा स्मूद ट्रांज़िशन।',
-      f_account_title:'अकाउंट लिंकिंग और सिंक',
-      f_account_body: 'सेटिंग्स › लॉगिन और सुरक्षा में जाकर Google या ईमेल अकाउंट लिंक करें। आपकी अकाउंट जानकारी अब iOS और Android पर सिंक रहती है।',
-      f_dark_title:   'डार्क मोड',
-      f_dark_body:    'आख़िरकार iOS पर भी आ गया। यह आपकी सिस्टम सेटिंग को अपने आप फ़ॉलो करता है, या आप इसे कभी भी खुद बदल सकते हैं।',
-      f_expiry_title: 'मेंबरशिप की समाप्ति',
-      f_expiry_body:  'अब आपकी प्रोफ़ाइल में साफ़ दिखेगा कि आपकी मेंबरशिप कब ख़त्म हो रही है।',
-      f_stats_title:  'ट्रिप आँकड़ों की झलक',
-      f_stats_body:   'मेरी ट्रिप्स में एक नया कार्ड, जिससे आप अपने सफ़र के आँकड़े एक नज़र में देख सकें।',
-      sync_title:     'iOS और Android अब पूरी तरह एक जैसे',
-      sync_body:      'इस वर्ज़न से दोनों प्लेटफ़ॉर्म पर फ़ीचर और अनुभव एक जैसे हैं। आगे से नए फ़ीचर दोनों पर एक साथ आएंगे।',
-      footer_title:   'कोई सवाल या सुझाव?',
-      footer_body:    'बेझिझक लिखें — हम हर संदेश पढ़ते हैं।'
+    hi: {
+      navTitle: 'नया क्या है', langName: 'हिन्दी',
+      intro: 'इस वर्शन में ये नया है।',
+      sectionLabel: 'नया और बेहतर',
+      f1t: 'इंटरफ़ेस में सुधार',
+      f1b: 'पूरे ऐप का [[लेआउट, स्पेसिंग और टाइपोग्राफ़ी]] बेहतर की गई है, जिससे पढ़ना और आसान लगेगा।',
+      f2t: 'अकाउंट लिंक और सिंक',
+      f2b: '[[सेटिंग्स › लॉगिन और सुरक्षा]] में जाकर Google या ईमेल अकाउंट लिंक करें। आपकी अकाउंट जानकारी अब [[iOS और Android]] पर सिंक रहती है।',
+      f3t: 'डार्क मोड',
+      f3b: '[[डार्क मोड]] अब iOS पर उपलब्ध है। यह सिस्टम सेटिंग के अनुसार बदलता है, या आप खुद चुन सकते हैं।',
+      f4t: 'मेंबरशिप की समाप्ति तिथि',
+      f4b: 'आपकी प्रोफ़ाइल अब दिखाती है कि [[आपकी मेंबरशिप कब खत्म होगी]]।',
+      f5t: 'ट्रिप आंकड़ों का प्रीव्यू कार्ड',
+      f5b: 'मेरी यात्राएँ में नया कार्ड आपके सफ़र के आंकड़े एक नज़र में दिखाता है।',
+      parityTitle: 'iOS और Android अब एक जैसे',
+      parityBody: 'इस वर्शन से दोनों प्लैटफ़ॉर्म पर फ़ीचर और अनुभव एक समान हैं। नए फ़ीचर अब iOS और Android पर साथ आएँगे।',
+      feedback: 'कोई सवाल या सुझाव? हमें बताएं — हम हर संदेश पढ़ते हैं।',
+      langSheetTitle: 'भाषा'
     },
-    'ru': {
-      doc_title:      'Что нового',
-      hero_eyebrow:   'Обновление iOS',
-      hero_title:     'Что нового',
-      hero_intro:     'Несколько изменений, которые вам понравятся.',
-      f_polish_title: 'Отшлифованный интерфейс',
-      f_polish_body:  'Множество улучшений по всему приложению — аккуратнее вёрстка, плавнее переходы.',
-      f_account_title:'Привязка и синхронизация аккаунта',
-      f_account_body: 'Привяжите аккаунт Google или электронную почту в разделе «Настройки › Вход и безопасность». Данные аккаунта теперь синхронизируются между iOS и Android.',
-      f_dark_title:   'Тёмная тема',
-      f_dark_body:    'Наконец-то и на iOS. Следует настройкам системы автоматически или переключается вручную в любой момент.',
-      f_expiry_title: 'Срок действия подписки',
-      f_expiry_body:  'В профиле теперь видно, когда именно заканчивается ваша подписка.',
-      f_stats_title:  'Статистика поездок',
-      f_stats_body:   'Новая карточка в разделе «Мои поездки» — быстрый обзор ваших цифр путешествий.',
-      sync_title:     'iOS и Android полностью синхронизированы',
-      sync_body:      'Начиная с этой версии обе платформы совпадают по функциям и впечатлениям. Новые возможности будут появляться на обеих одновременно.',
-      footer_title:   'Есть вопросы или идеи?',
-      footer_body:    'Напишите нам — мы читаем каждое сообщение.'
+    ru: {
+      navTitle: 'Что нового', langName: 'Русский',
+      intro: 'Вот что нового в этой версии.',
+      sectionLabel: 'НОВОЕ И УЛУЧШЕННОЕ',
+      f1t: 'Обновлённый интерфейс',
+      f1b: 'Мы пересмотрели [[вёрстку, отступы и типографику]] во всём приложении — читать стало легче и спокойнее.',
+      f2t: 'Привязка и синхронизация аккаунта',
+      f2b: 'Привяжите аккаунт Google или почту в разделе «[[Настройки › Вход и безопасность]]». Данные аккаунта теперь синхронизируются между [[iOS и Android]].',
+      f3t: 'Тёмная тема',
+      f3b: '[[Тёмная тема]] появилась на iOS. Она следует системной настройке или переключается вручную.',
+      f4t: 'Срок действия подписки',
+      f4b: 'В профиле теперь видно, [[когда именно заканчивается ваша подписка]].',
+      f5t: 'Карточка статистики поездок',
+      f5b: 'Новая карточка в «Мои поездки» показывает ваши цифры путешествий одним взглядом.',
+      parityTitle: 'iOS и Android теперь вместе',
+      parityBody: 'С этой версии обе платформы совпадают по функциям и опыту. Новые функции будут выходить на iOS и Android одновременно.',
+      feedback: 'Вопросы или идеи? Напишите нам — мы читаем каждое сообщение.',
+      langSheetTitle: 'Язык'
     }
   };
 
   /* ==========================================================================
-     RESOLUTION
+     LANGUAGE RESOLUTION  —  order per the handoff:
+     manual pick > lang param > locale > hl > navigator.language > en
      ======================================================================== */
   function params() {
     try { return new URLSearchParams(location.search); }
     catch (e) { return { get: function () { return null; } }; }
   }
 
-  function matchOne(tag) {
-    if (!tag) return null;
-    var t = String(tag).trim();
-    if (!t) return null;
-    var lower = t.toLowerCase();
-
-    for (var i = 0; i < SUPPORTED.length; i++) {
-      if (SUPPORTED[i].toLowerCase() === lower) return SUPPORTED[i];
+  function normalize(raw) {
+    if (!raw) return null;
+    var v = String(raw).trim();
+    if (!v) return null;
+    var lower = v.toLowerCase();
+    for (var i = 0; i < CODES.length; i++) {
+      if (CODES[i].toLowerCase() === lower) return CODES[i];
     }
-
-    /* Chinese is resolved before the generic base match, otherwise any zh-*
-       would fall into zh-Hant through its "zh" base. */
-    if (lower === 'zh' || lower.indexOf('zh-') === 0) {
-      if (/hant|\b(tw|hk|mo)\b/.test(lower)) return 'zh-Hant';
-      return ZH_HANS_TO_HANT ? 'zh-Hant' : null;
-    }
-
-    var base = lower.split('-')[0];
-    for (var j = 0; j < SUPPORTED.length; j++) {
-      if (SUPPORTED[j].split('-')[0].toLowerCase() === base) return SUPPORTED[j];
+    var base = lower.split(/[-_]/)[0];
+    if (base === 'zh') return 'zh-TW';
+    for (var j = 0; j < CODES.length; j++) {
+      if (CODES[j].toLowerCase().split('-')[0] === base) return CODES[j];
     }
     return null;
   }
 
-  function resolveLang() {
-    var candidates = [];
-    var q = params().get('lang');
-    if (q) candidates.push(q);
-    var navLangs = navigator.languages && navigator.languages.length
-      ? navigator.languages
-      : [navigator.language];
-    candidates = candidates.concat(navLangs);
+  var picked = null;
 
-    for (var i = 0; i < candidates.length; i++) {
-      var hit = matchOne(candidates[i]);
-      if (hit) return hit;
+  function activeLang() {
+    var p = params();
+    return picked
+      || normalize(p.get('lang'))
+      || normalize(p.get('locale'))
+      || normalize(p.get('hl'))
+      || normalize(navigator.language)
+      || 'en';
+  }
+
+  /* ==========================================================================
+     MARKER HIGHLIGHT
+     --------------------------------------------------------------------------
+     Splits "plain [[marked]] plain" into text nodes and .mark spans. Built with
+     createTextNode rather than innerHTML so copy can never inject markup.
+     ======================================================================== */
+  function applyText(el, raw) {
+    el.textContent = '';
+    var parts = String(raw).split(/\[\[|\]\]/);
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2 === 1) {
+        var span = document.createElement('span');
+        span.className = 'mark';
+        span.appendChild(document.createTextNode(parts[i]));
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(parts[i]));
+      }
     }
-    return 'en';
+  }
+
+  /* ==========================================================================
+     SHEET
+     ======================================================================== */
+  var sheet = document.getElementById('sheet');
+  var sheetList = document.getElementById('sheetList');
+  var langBtn = document.getElementById('langBtn');
+  var lastFocus = null;
+
+  function openSheet() {
+    lastFocus = document.activeElement;
+    sheet.hidden = false;
+    document.body.classList.add('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'true');
+    var active = sheetList.querySelector('[aria-selected="true"]');
+    if (active) active.focus();
+  }
+
+  function closeSheet() {
+    sheet.hidden = true;
+    document.body.classList.remove('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'false');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  langBtn.addEventListener('click', openSheet);
+  sheet.addEventListener('click', closeSheet);
+  document.getElementById('sheetPanel').addEventListener('click', function (e) {
+    e.stopPropagation();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !sheet.hidden) closeSheet();
+  });
+
+  function buildSheet(lang) {
+    sheetList.textContent = '';
+    CODES.forEach(function (code) {
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'sheet__row';
+      row.setAttribute('role', 'option');
+      row.setAttribute('aria-selected', String(code === lang));
+      row.lang = code;
+
+      var name = document.createElement('span');
+      name.textContent = STRINGS[code].langName;
+      row.appendChild(name);
+
+      var check = document.createElement('span');
+      check.className = 'sheet__check';
+      check.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
+        'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+      row.appendChild(check);
+
+      row.addEventListener('click', function () {
+        picked = code;
+        closeSheet();
+        render();
+      });
+      sheetList.appendChild(row);
+    });
   }
 
   /* ==========================================================================
      RENDER
      ======================================================================== */
   function render() {
-    var lang = resolveLang();
-    var dict = I18N[lang] || I18N.en;
-    var fallback = I18N.en;
+    var lang = activeLang();
+    var t = STRINGS[lang] || STRINGS.en;
+    var p = params();
 
     document.documentElement.lang = lang;
     document.documentElement.dir = 'ltr';
-    document.title = dict.doc_title || fallback.doc_title;
+    document.title = t.navTitle;
 
-    var nodes = document.querySelectorAll('[data-i18n]');
+    document.getElementById('navTitle').textContent = t.navTitle;
+    document.getElementById('langBadge').textContent = BADGES[lang] || 'EN';
+    document.getElementById('intro').textContent = t.intro;
+    document.getElementById('sectionLabel').textContent = t.sectionLabel;
+    document.getElementById('sheetTitle').textContent = t.langSheetTitle;
+
+    /* Heading is `versionWord + " " + version`. Neither is localized in the
+       design — versionWord is a config input, not a STRINGS key. */
+    var version = p.get('v') || '2.0.5';
+    var versionWord = p.get('vw') || 'Version';
+    if (!/^[\w.\-]{1,24}$/.test(version)) version = '2.0.5';
+    document.getElementById('versionHeading').textContent = versionWord + ' ' + version;
+
+    var nodes = document.querySelectorAll('[data-t]');
     for (var i = 0; i < nodes.length; i++) {
-      var key = nodes[i].getAttribute('data-i18n');
-      var value = dict[key];
-      if (value === undefined) value = fallback[key];
-      if (value !== undefined) nodes[i].textContent = value;
+      var key = nodes[i].getAttribute('data-t');
+      applyText(nodes[i], t[key] !== undefined ? t[key] : STRINGS.en[key]);
     }
 
-    /* Optional version chip: ?v=3.2.0 */
-    var v = params().get('v');
-    if (v && /^[\w.\-]{1,24}$/.test(v)) {
-      var chip = document.getElementById('version');
-      chip.textContent = 'v' + v.replace(/^v/i, '');
-      chip.hidden = false;
-    }
+    buildSheet(lang);
+  }
 
-    /* Per-locale screenshots, when that locale ships its own set. */
-    if (LOCALIZED_SHOTS.indexOf(lang) !== -1) {
-      var shots = document.querySelectorAll('[data-shot]');
-      for (var k = 0; k < shots.length; k++) {
-        var n = shots[k].getAttribute('data-shot');
-        var src = shots[k].querySelector('source');
-        var img = shots[k].querySelector('img');
-        if (src) src.srcset = 'assets/' + lang + '/shot-' + n + '.webp';
-        if (img) img.src = 'assets/' + lang + '/shot-' + n + '.png';
-      }
-    }
+  /* QA-only scheme override; production ships as auto (follows the OS). */
+  var theme = params().get('theme');
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-scheme', theme);
   }
 
   if (document.readyState === 'loading') {
