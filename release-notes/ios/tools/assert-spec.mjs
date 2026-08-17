@@ -31,7 +31,8 @@ const LIGHT = {
   hairline:  rgb(227, 227, 232),  // --border-hairline  #E3E3E8
   primary:   rgb(22, 22, 26),     // --text-primary     #16161A
   secondary: rgb(110, 110, 115),  // --text-secondary   #6E6E73
-  tertiary:  rgb(174, 174, 178)   // --text-tertiary    #AEAEB2
+  tertiary:  rgb(174, 174, 178),  // --text-tertiary    #AEAEB2
+  heroArt:   'rocket-lineart.png'
 };
 
 const DARK = {
@@ -41,7 +42,8 @@ const DARK = {
   hairline:  rgb(44, 44, 46),     // #2C2C2E
   primary:   rgb(255, 255, 255),  // #FFFFFF
   secondary: rgb(142, 142, 147),  // #8E8E93
-  tertiary:  rgb(99, 99, 102)     // #636366
+  tertiary:  rgb(99, 99, 102),    // #636366
+  heroArt:   'rocket-lineart-white.png'
 };
 
 const ACCENT = rgb(62, 106, 225); // --accent-primary #3E6AE1
@@ -87,6 +89,8 @@ function specFor(C) {
     ['.hero', 'gap', '12px'],
     ['.hero-art', 'maxWidth', '340px'],
     ['.hero-art', 'marginBottom', '8px'],
+    ['.hero-art', 'backgroundImage', C.heroArt],
+    ['.hero-art', 'filter', 'none'],   // the invert hack must stay gone
     ['.hero__heading', 'fontSize', '34px'],
     ['.hero__heading', 'fontWeight', '700'],
     ['.hero__heading', 'lineHeight', '35.7px'],   // 1.05
@@ -189,7 +193,12 @@ for (const [scheme, C] of [['light', LIGHT], ['dark', DARK]]) {
     return spec.map(([sel, prop, want]) => {
       const el = document.querySelector(sel);
       if (!el) return { sel, prop, want, got: '<no such element>', ok: false };
-      const got = getComputedStyle(el)[prop];
+      let got = getComputedStyle(el)[prop];
+      // url() resolves to an absolute address at computed time; the filename
+      // is the part the spec actually pins.
+      if (prop === 'backgroundImage' && got.startsWith('url(')) {
+        got = got.replace(/^url\(["']?|["']?\)$/g, '').split('/').pop();
+      }
       return { sel, prop, want, got, ok: got === want };
     });
   }, specFor(C));

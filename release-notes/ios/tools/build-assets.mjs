@@ -46,7 +46,8 @@ const MAP = [
   { from: '3.PNG',                          to: 'shot-3',          maxCssWidth: 300 },
   { from: '2.PNG',                          to: 'shot-4',          maxCssWidth: 300 },
   { from: '4.PNG',                          to: 'shot-5',          maxCssWidth: 300 },
-  { from: 'rocket-lineart-even@2x.png',     to: 'rocket-lineart',  maxCssWidth: 340 }
+  { from: 'rocket-lineart-even@2x.png',        to: 'rocket-lineart',       maxCssWidth: 340 },
+  { from: 'rocket-lineart-even-white@2x.png',  to: 'rocket-lineart-white', maxCssWidth: 340 }
 ];
 
 const DPR = 2;

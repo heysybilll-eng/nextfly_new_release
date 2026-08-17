@@ -52,6 +52,12 @@ for (const [, attr, rel] of refs) {
   if (uri) html = html.replace(`${attr}="${rel}"`, `${attr}="${uri}"`);
 }
 
+// The hero illustration is referenced from CSS, not markup.
+for (const [full, rel] of [...html.matchAll(/url\("(assets\/[^"]+)"\)/g)]) {
+  const uri = await dataUri(rel);
+  if (uri) html = html.split(full).join(`url("${uri}")`);
+}
+
 if (missing.size) {
   console.warn('Referenced but not found on disk:');
   for (const m of missing) console.warn(`  - ${m}`);

@@ -111,6 +111,10 @@ for (const scheme of schemes) {
           .filter(i => !i.complete || i.naturalWidth === 0)
           .map(i => i.getAttribute('src'));
 
+        // The hero illustration is painted from a CSS token, so it is not in
+        // document.images and needs its own check.
+        const heroArt = getComputedStyle(document.querySelector('.hero-art')).backgroundImage;
+
         // The sheet must list every locale and mark exactly one active.
         const rowsCount = document.querySelectorAll('.sheet__row').length;
         const activeCount = document.querySelectorAll('.sheet__row[aria-selected="true"]').length;
@@ -119,7 +123,7 @@ for (const scheme of schemes) {
           lang: de.lang,
           bg: getComputedStyle(document.body).backgroundColor,
           overflow, wide: wide.slice(0, 5), clipped, empty, leaked,
-          missingMarks, brokenImages, rowsCount, activeCount,
+          missingMarks, brokenImages, rowsCount, activeCount, heroArt,
           height: document.body.scrollHeight
         };
       }, MARKED_KEYS);
@@ -134,6 +138,9 @@ for (const scheme of schemes) {
       if (probe.leaked.length) problems.push(`unparsed [[ ]] in: ${probe.leaked.join(', ')}`);
       if (probe.missingMarks.length) problems.push(`no highlight spans in: ${probe.missingMarks.join(', ')}`);
       if (probe.brokenImages.length) problems.push(`broken images: ${probe.brokenImages.join(', ')}`);
+      const wantHero = scheme === 'dark' ? 'rocket-lineart-white.png' : 'rocket-lineart.png';
+      if (!probe.heroArt || probe.heroArt === 'none') problems.push('hero illustration has no background-image');
+      else if (!probe.heroArt.includes(wantHero)) problems.push(`hero art is ${probe.heroArt}, expected ${wantHero}`);
       if (probe.rowsCount !== LOCALES.length) problems.push(`sheet has ${probe.rowsCount} rows, expected ${LOCALES.length}`);
       if (probe.activeCount !== 1) problems.push(`sheet marks ${probe.activeCount} active rows, expected 1`);
       if (jsErrors.length) problems.push(`js errors: ${jsErrors.join(' | ')}`);

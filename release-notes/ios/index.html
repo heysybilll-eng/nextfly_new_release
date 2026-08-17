@@ -42,6 +42,11 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   --accent-primary:    #3E6AE1;
   --marker-gold:       #D9A441;
 
+  /* The hero illustration is a theme token, not a filter. A purpose-drawn
+     white version ships alongside the black one, so it swaps like any other
+     colour and only the applicable file is ever downloaded. */
+  --hero-art: url("assets/rocket-lineart.png");
+
   /* SF Pro / SF Pro Rounded are the real iOS system faces. The design
      prototype substituted MiSans only because SF Pro is not licensable there;
      on device these resolve to the genuine system fonts. `ui-rounded` is how
@@ -70,6 +75,7 @@ button { font: inherit; color: inherit; background: none; border: 0; }
     --text-tertiary:    #636366;
     --cta-inverse-fill: #FFFFFF;
     --cta-inverse-text: #000000;
+    --hero-art: url("assets/rocket-lineart-white.png");
   }
 }
 :root[data-scheme="dark"] {
@@ -82,6 +88,7 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   --text-tertiary:    #636366;
   --cta-inverse-fill: #FFFFFF;
   --cta-inverse-text: #000000;
+  --hero-art: url("assets/rocket-lineart-white.png");
 }
 
 /* ============================================================================
@@ -176,16 +183,10 @@ body {
 .hero-art {
   width: 100%;
   max-width: 340px;
-  height: auto;
   margin: 0 auto 8px;
-  filter: none;
+  aspect-ratio: 680 / 707;
+  background: var(--hero-art) center / contain no-repeat;
 }
-/* Black line art on a black ground needs inverting; the asset has no dark
-   counterpart. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-scheme="light"]) .hero-art { filter: invert(1); }
-}
-:root[data-scheme="dark"] .hero-art { filter: invert(1); }
 
 .hero__heading {
   font-family: var(--family-display);
@@ -469,10 +470,7 @@ body.sheet-open { overflow: hidden; }
 <main class="body">
 
   <div class="hero">
-    <!-- No <picture>/WebP here: WebP encodes this dithered line art larger
-         than PNG (124 KB vs 109 KB), so the fallback is the better source. -->
-    <img class="hero-art" src="assets/rocket-lineart.png" alt=""
-         width="680" height="707" fetchpriority="high" decoding="async">
+    <div class="hero-art" role="img" aria-hidden="true"></div>
     <h1 class="hero__heading" id="versionHeading"></h1>
     <p class="hero__intro" id="intro"></p>
   </div>

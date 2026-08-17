@@ -17,13 +17,13 @@ Deploy `index.html` + `assets/` to any static host. No fonts, scripts or stylesh
 
 | Area | State |
 |---|---|
-| Layout, type, colour, radii vs handoff spec | **188/188 assertions pass**, both schemes |
+| Layout, type, colour, radii vs handoff spec | **212/212 assertions pass** across 3 widths, both schemes |
 | Light + dark, following the OS | Done |
 | 11 locales, final copy ported verbatim | Done |
 | Marker-underline highlights | Done, all 11 locales |
 | Language sheet | Done |
 | Layout sweep, 11 locales x 3 viewports x 2 schemes | **66/66 pass** |
-| Real screenshots + hero art | Done — all 6 in place |
+| Real screenshots + hero art | Done — all 7 in place, incl. the dark hero |
 | Real-device pass | Not done — needs a physical WKWebView |
 
 Design source lives in `pics/` at the repo root. `_ds/*` and `support.js` were never available, but they are only needed by the prototype's own runtime — every value the page depends on is stated in the handoff.
@@ -38,7 +38,28 @@ An earlier round of this work was scoped as **light-only**, on the understanding
 
 To force light-only anyway, delete the `@media (prefers-color-scheme: dark)` block and the `:root[data-scheme="dark"]` block in `index.html`, and change the `color-scheme` meta and `:root` declaration to `light`. Nothing else depends on it.
 
-The hero line art is a transparent PNG with black strokes and has no dark counterpart, so dark mode applies `filter: invert(1)` — the approach the handoff calls for. Supplying a real dark asset would be cleaner if the illustration ever gains colour.
+### How the theme is detected
+
+**Pure CSS. No JavaScript, and the client passes nothing.** The whole mechanism is `@media (prefers-color-scheme: dark)`, which WKWebView answers from the trait collection of the view hosting it.
+
+That last part is the one thing the client team has to get right. The app has its own **Appearance** setting (System / Light / Dark), so the OS setting and the app's effective theme can disagree. WKWebView reports whatever its *view hierarchy* says, not what iOS Settings says — so the host must apply the user's choice to the web view or an ancestor:
+
+```swift
+// wherever the app resolves its own Appearance preference
+webView.overrideUserInterfaceStyle = .dark   // or .light, or .unspecified to follow the system
+```
+
+With that set, the page follows automatically and stays in sync with the rest of the app. Without it, a user who set the app to Dark on a Light phone gets a light H5 inside a dark app.
+
+If that override cannot be applied reliably, pass `?theme=dark` / `?theme=light` instead — the page honours it and it takes precedence over the media query. It is otherwise a QA affordance; the `overrideUserInterfaceStyle` route is preferred because it needs no coordination between the client and the URL.
+
+On Android WebView the equivalent is `WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)`, which is what makes `prefers-color-scheme` report dark there. (`setForceDark` is deprecated.)
+
+### The hero illustration
+
+The illustration ships in two purpose-drawn versions — black strokes for light, white for dark — selected through a `--hero-art` CSS token exactly like a colour. Only the applicable file is ever downloaded, because CSS does not fetch a `background-image` it isn't using.
+
+This replaced an earlier `filter: invert(1)` on the black version. Inverting works for pure line art but this illustration is halftone-shaded, and inverting flips the dot pattern too, so shaded areas read backwards. The white version keeps the shading reading as shading.
 
 ---
 
@@ -166,7 +187,8 @@ Source images live in `pics/`. The upload-to-feature mapping comes from the hand
 | `3.PNG` | `shot-3` | 3 — Dark Mode | Settings, dark |
 | `2.PNG` | `shot-4` | 4 — Membership expiry | Settings, light (Pro+ expiry row) |
 | `4.PNG` | `shot-5` | 5 — Trip stats | My Trips, flight passport card |
-| `rocket-lineart-even@2x.png` | `rocket-lineart` | hero | — |
+| `rocket-lineart-even@2x.png` | `rocket-lineart` | hero, light | — |
+| `rocket-lineart-even-white@2x.png` | `rocket-lineart-white` | hero, dark | — |
 
 `2.PNG` and `3.PNG` look swapped because they are the light and dark captures of the *same* Settings screen: the dark one illustrates Dark Mode, the light one illustrates the membership expiry row. The ordering is deliberate, not an error in the handoff.
 
@@ -186,7 +208,9 @@ The resolver tolerates iOS screenshot rename artifacts, so `3.PNG` still matches
 
 Screenshots render at 66% of the 400px panel content box (≈264 CSS px), so 600px sources cover 2x comfortably. The hero renders up to 340px, and must stay a transparent PNG with black strokes or the dark-mode invert breaks.
 
-**The hero is served as PNG with no WebP `<source>`.** WebP encodes that dithered line art *larger* than PNG (124 KB vs 109 KB), so the fallback is the better source. `build-assets.mjs` flags this whenever it happens. Both files are always written regardless: a `<picture>` whose `<source>` 404s does not fall back to the `<img>`, it simply fails.
+**Both hero variants are served as PNG, no WebP.** WebP encodes this dithered line art *larger* than PNG (124 vs 109 KB, and 130 vs 114 KB), so the WebP copies are deleted after building. `build-assets.mjs` prints a warning whenever it produces a WebP that loses to its PNG.
+
+For the screenshots, which do benefit from WebP, both formats are always written: a `<picture>` whose `<source>` 404s does not fall back to its `<img>`, it simply fails.
 
 ### Localized screenshots
 

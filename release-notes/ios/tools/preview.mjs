@@ -33,14 +33,23 @@ html = html.replace(/<source[^>]*>\s*/g, '');
 // ---- 1. inline assets -------------------------------------------------------
 const cache = new Map();
 let bytes = 0;
-for (const [, attr, rel] of [...html.matchAll(/(src|srcset)="(assets\/[^"]+)"/g)]) {
+async function uri(rel) {
   if (!cache.has(rel)) {
     const buf = await fs.readFile(path.join(ROOT, rel));
     bytes += buf.length;
     const mime = MIME[path.extname(rel).toLowerCase()] || 'application/octet-stream';
     cache.set(rel, `data:${mime};base64,${buf.toString('base64')}`);
   }
-  html = html.replace(`${attr}="${rel}"`, `${attr}="${cache.get(rel)}"`);
+  return cache.get(rel);
+}
+
+// markup: src="assets/…"
+for (const [, attr, rel] of [...html.matchAll(/(src)="(assets\/[^"]+)"/g)]) {
+  html = html.replace(`${attr}="${rel}"`, `${attr}="${await uri(rel)}"`);
+}
+// stylesheet: url("assets/…") — the hero illustration is a CSS token
+for (const [full, rel] of [...html.matchAll(/url\("(assets\/[^"]+)"\)/g)]) {
+  html = html.split(full).join(`url("${await uri(rel)}")`);
 }
 
 // ---- 2. unwrap --------------------------------------------------------------
