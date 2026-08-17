@@ -23,12 +23,12 @@ Deploy `index.html` + `assets/` to any static host. No fonts, scripts or stylesh
 | Marker-underline highlights | Done, all 11 locales |
 | Language sheet | Done |
 | Layout sweep, 11 locales x 3 viewports x 2 schemes | **66/66 pass** |
-| Real screenshots + hero art | 5 of 6 in place; **feature 2 still a placeholder** |
+| Real screenshots + hero art | Done — all 6 in place |
 | Real-device pass | Not done — needs a physical WKWebView |
 
 Design source lives in `pics/` at the repo root. `_ds/*` and `support.js` were never available, but they are only needed by the prototype's own runtime — every value the page depends on is stated in the handoff.
 
-**`Group 2.png` (feature 2, Login & security) is missing from `pics/`.** That one slot still renders a labelled placeholder. Drop the file in and re-run `build-assets.mjs` to finish.
+One thing worth a look before shipping: `Group 2.png` (feature 2) is roughly 55% empty space below its two cards, so it renders as a tall mostly-blank panel next to the other four. The handoff specifies the full image, never cropped, so it is used as supplied — but a tighter capture would sit better.
 
 ---
 
@@ -156,7 +156,9 @@ Rebuild after changing any source image:
 node tools/build-assets.mjs --src ../../pics
 ```
 
-Then copy the intrinsic sizes it prints into the `width`/`height` attributes in `index.html` — those reserve the aspect ratio and prevent layout shift as images decode. Current build: screenshots 600x1301, hero 680x707, total WebP payload 241 KB down from 2.0 MB of source PNGs.
+Then copy the intrinsic sizes it prints into the `width`/`height` attributes in `index.html` — those reserve the aspect ratio and prevent layout shift as images decode. Current build: screenshots 600x1301 except `shot-2` at 590x1278, hero 680x707. Total WebP payload 257 KB, down from 2.0 MB of source PNGs.
+
+`Group 2.png` is a 1x capture where the rest are 2x, so it resolves to 590px wide rather than 600. At the ~264 CSS px display width that is still 2.2x, and the aspect ratio matches the others to within a rounding step, so it needs no special handling beyond its own `width`/`height` attributes.
 
 The resolver tolerates iOS screenshot rename artifacts, so `3.PNG` still matches when it arrives as `3 18.40.03.PNG`.
 
