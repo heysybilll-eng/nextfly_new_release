@@ -4,3 +4,6 @@ node_modules/
 index.standalone.html
 .DS_Store
 *.log
+
+# built by tools/dist.mjs; the zip beside it is what ships
+dist/
