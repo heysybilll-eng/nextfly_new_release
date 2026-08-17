@@ -420,11 +420,10 @@ body.sheet-open { overflow: hidden; }
 <main class="body">
 
   <div class="hero">
-    <picture>
-      <source srcset="assets/rocket-lineart.webp" type="image/webp">
-      <img class="hero-art" src="assets/rocket-lineart.png" alt=""
-           width="680" height="680" fetchpriority="high" decoding="async">
-    </picture>
+    <!-- No <picture>/WebP here: WebP encodes this dithered line art larger
+         than PNG (124 KB vs 109 KB), so the fallback is the better source. -->
+    <img class="hero-art" src="assets/rocket-lineart.png" alt=""
+         width="680" height="707" fetchpriority="high" decoding="async">
     <h1 class="hero__heading" id="versionHeading"></h1>
     <p class="hero__intro" id="intro"></p>
   </div>
@@ -437,31 +436,31 @@ body.sheet-open { overflow: hidden; }
   <section class="f">
     <h2 class="f__title" data-t="f1t"></h2>
     <p class="f__body" data-t="f1b"></p>
-    <div class="shot"><picture><source srcset="assets/shot-1.webp" type="image/webp"><img src="assets/shot-1.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+    <div class="shot"><picture><source srcset="assets/shot-1.webp" type="image/webp"><img src="assets/shot-1.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
   </section>
 
   <section class="f">
     <h2 class="f__title" data-t="f2t"></h2>
     <p class="f__body" data-t="f2b"></p>
-    <div class="shot"><picture><source srcset="assets/shot-2.webp" type="image/webp"><img src="assets/shot-2.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+    <div class="shot"><picture><source srcset="assets/shot-2.webp" type="image/webp"><img src="assets/shot-2.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
   </section>
 
   <section class="f">
     <h2 class="f__title" data-t="f3t"></h2>
     <p class="f__body" data-t="f3b"></p>
-    <div class="shot"><picture><source srcset="assets/shot-3.webp" type="image/webp"><img src="assets/shot-3.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+    <div class="shot"><picture><source srcset="assets/shot-3.webp" type="image/webp"><img src="assets/shot-3.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
   </section>
 
   <section class="f">
     <h2 class="f__title" data-t="f4t"></h2>
     <p class="f__body" data-t="f4b"></p>
-    <div class="shot"><picture><source srcset="assets/shot-4.webp" type="image/webp"><img src="assets/shot-4.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+    <div class="shot"><picture><source srcset="assets/shot-4.webp" type="image/webp"><img src="assets/shot-4.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
   </section>
 
   <section class="f f--plain">
     <h2 class="f__title" data-t="f5t"></h2>
     <p class="f__body" data-t="f5b"></p>
-    <div class="shot"><picture><source srcset="assets/shot-5.webp" type="image/webp"><img src="assets/shot-5.png" alt="" width="600" height="1299" loading="lazy" decoding="async"></picture></div>
+    <div class="shot"><picture><source srcset="assets/shot-5.webp" type="image/webp"><img src="assets/shot-5.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
   </section>
 
   <div class="parity">

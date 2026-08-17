@@ -23,10 +23,12 @@ Deploy `index.html` + `assets/` to any static host. No fonts, scripts or stylesh
 | Marker-underline highlights | Done, all 11 locales |
 | Language sheet | Done |
 | Layout sweep, 11 locales x 3 viewports x 2 schemes | **66/66 pass** |
-| **Real screenshots + hero art** | **Not done — `assets/` holds labelled placeholders** |
+| Real screenshots + hero art | 5 of 6 in place; **feature 2 still a placeholder** |
 | Real-device pass | Not done — needs a physical WKWebView |
 
-The design source files (`uploads/*`, `_ds/*`, `support.js`) were never reachable from the build environment. Only `iOS Release Notes H5.dc.html` and the handoff README were supplied, which is enough for every value but not for the images.
+Design source lives in `pics/` at the repo root. `_ds/*` and `support.js` were never available, but they are only needed by the prototype's own runtime — every value the page depends on is stated in the handoff.
+
+**`Group 2.png` (feature 2, Login & security) is missing from `pics/`.** That one slot still renders a labelled placeholder. Drop the file in and re-run `build-assets.mjs` to finish.
 
 ---
 
@@ -112,8 +114,8 @@ npm run spec                               # 188 computed-value assertions vs th
 node tools/shot.mjs --gate                 # 390pt, both schemes, all locales
 node tools/shot.mjs --lang de --vp se --scheme dark
 
-node tools/make-placeholders.mjs           # regenerate stand-in assets
-node tools/build-assets.mjs --src <uploads>  # real design uploads -> assets/
+node tools/make-placeholders.mjs --only shot-2   # regenerate one stand-in
+node tools/build-assets.mjs --src ../../pics     # source images -> assets/
 node tools/inline.mjs                      # -> index.standalone.html
 ```
 
@@ -133,7 +135,7 @@ Neither gate replaces a real-device pass — safe-area insets, overscroll behavi
 
 ## Assets
 
-`assets/` currently holds placeholders, visibly stamped `PLACEHOLDER`. The upload-to-feature mapping comes from the handoff and has been confirmed against the screenshots themselves. It is **not** in filename order:
+Source images live in `pics/`. The upload-to-feature mapping comes from the handoff, confirmed against the screenshots themselves. It is **not** in filename order:
 
 | Design upload | Ships as | Feature | Screen |
 |---|---|---|---|
@@ -148,15 +150,19 @@ Neither gate replaces a real-device pass — safe-area insets, overscroll behavi
 
 Note that feature 1 and 3 use dark captures while feature 4 uses a light one, so the page shows a mix of both in either scheme. That is what the design specifies.
 
-To swap in the real images:
+Rebuild after changing any source image:
 
 ```bash
-node tools/build-assets.mjs --src <path-to-design/uploads>
+node tools/build-assets.mjs --src ../../pics
 ```
 
-Then copy the intrinsic sizes it prints into the `width`/`height` attributes in `index.html` — those attributes reserve the aspect ratio and prevent layout shift as images decode.
+Then copy the intrinsic sizes it prints into the `width`/`height` attributes in `index.html` — those reserve the aspect ratio and prevent layout shift as images decode. Current build: screenshots 600x1301, hero 680x707, total WebP payload 241 KB down from 2.0 MB of source PNGs.
 
-Screenshots render at 66% of the 400px panel content box (≈264 CSS px), so ~600px wide sources cover 2× comfortably. The hero renders up to 340px. Keep the hero transparent with black strokes, or the dark-mode invert will not work.
+The resolver tolerates iOS screenshot rename artifacts, so `3.PNG` still matches when it arrives as `3 18.40.03.PNG`.
+
+Screenshots render at 66% of the 400px panel content box (≈264 CSS px), so 600px sources cover 2x comfortably. The hero renders up to 340px, and must stay a transparent PNG with black strokes or the dark-mode invert breaks.
+
+**The hero is served as PNG with no WebP `<source>`.** WebP encodes that dithered line art *larger* than PNG (124 KB vs 109 KB), so the fallback is the better source. `build-assets.mjs` flags this whenever it happens. Both files are always written regardless: a `<picture>` whose `<source>` 404s does not fall back to the `<img>`, it simply fails.
 
 ### Localized screenshots
 

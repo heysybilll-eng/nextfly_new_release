@@ -17,19 +17,29 @@ import { ASSETS } from './_shared.mjs';
  * Labels follow the design handoff's upload-to-feature mapping.
  */
 const ITEMS = [
-  { name: 'shot-1',         w: 600, h: 1299, label: '1.PNG · Home, dark' },
-  { name: 'shot-2',         w: 600, h: 1299, label: 'Group 2.png · Login & security' },
-  { name: 'shot-3',         w: 600, h: 1299, label: '3.PNG · Settings, dark' },
-  { name: 'shot-4',         w: 600, h: 1299, label: '2.PNG · Settings, light' },
-  { name: 'shot-5',         w: 600, h: 1299, label: '4.PNG · My Trips, passport' },
-  { name: 'rocket-lineart', w: 680, h: 680,  label: 'Rocket line art', lineart: true }
+  { name: 'shot-1',         w: 600, h: 1301, label: '1.PNG · Home, dark' },
+  { name: 'shot-2',         w: 600, h: 1301, label: 'Group 2.png · Login & security' },
+  { name: 'shot-3',         w: 600, h: 1301, label: '3.PNG · Settings, dark' },
+  { name: 'shot-4',         w: 600, h: 1301, label: '2.PNG · Settings, light' },
+  { name: 'shot-5',         w: 600, h: 1301, label: '4.PNG · My Trips, passport' },
+  { name: 'rocket-lineart', w: 680, h: 707,  label: 'Rocket line art', lineart: true }
 ];
+
+/** `--only shot-2` regenerates a single slot without clobbering real assets. */
+const only = process.argv.includes('--only')
+  ? process.argv[process.argv.indexOf('--only') + 1]
+  : null;
+const targets = only ? ITEMS.filter(i => i.name === only) : ITEMS;
+if (only && !targets.length) {
+  console.error(`Unknown placeholder "${only}". Known: ${ITEMS.map(i => i.name).join(', ')}`);
+  process.exit(2);
+}
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 await fs.mkdir(ASSETS, { recursive: true });
 
-for (const it of ITEMS) {
+for (const it of targets) {
   const fs_ = Math.max(14, Math.round(it.w / 22));
   let svg;
 
@@ -69,4 +79,4 @@ for (const it of ITEMS) {
   console.log(`placeholder ${it.name}  ${it.w}x${it.h}${it.lineart ? '  (transparent line art)' : ''}`);
 }
 
-console.log(`\n${ITEMS.length} placeholders written to ${ASSETS}`);
+console.log(`\n${targets.length} placeholder(s) written to ${ASSETS}`);

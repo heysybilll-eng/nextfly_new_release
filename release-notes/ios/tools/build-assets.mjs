@@ -57,12 +57,36 @@ let totalBefore = 0;
 let totalAfter = 0;
 const missing = [];
 
+const available = await fs.readdir(SRC).catch(() => []);
+
+/**
+ * Resolve an expected upload name against what is actually in the folder.
+ * iOS screenshot exports routinely pick up a timestamp suffix ("3.PNG" ->
+ * "3 18.40.03.PNG"), so fall back to matching on the stem before extension.
+ */
+function resolve(want) {
+  if (available.includes(want)) return want;
+  const stem = path.parse(want).name;
+  const hit = available.find(f => {
+    const s = path.parse(f).name;
+    return s === stem || s.startsWith(stem + ' ');
+  });
+  return hit || null;
+}
+
 for (const item of MAP) {
-  const src = path.join(SRC, item.from);
+  const found = resolve(item.from);
+  if (!found) {
+    missing.push(item.from);
+    continue;
+  }
+  if (found !== item.from) {
+    console.log(`  (matched "${item.from}" to "${found}")`);
+  }
 
   let input;
   try {
-    input = await fs.readFile(src);
+    input = await fs.readFile(path.join(SRC, found));
   } catch {
     missing.push(item.from);
     continue;
@@ -88,6 +112,16 @@ for (const item of MAP) {
     `png ${kb(png.length).padStart(9)}  (from ${kb(input.length)})`
   );
   console.log(`  intrinsic size for <img width/height>: ${out.width} x ${out.height}`);
+
+  // Both files are always written: a <picture> whose <source> 404s does NOT
+  // fall back to the <img>, it just fails. But when PNG wins there is no point
+  // serving the WebP, so drop that asset's <source> in the markup.
+  if (webp.length > png.length) {
+    console.log(
+      `  ! PNG is smaller than WebP here (${kb(png.length)} vs ${kb(webp.length)}) — ` +
+      `serve the PNG and omit the <source> for this one.`
+    );
+  }
 }
 
 if (missing.length) {
