@@ -133,16 +133,20 @@ Neither gate replaces a real-device pass — safe-area insets, overscroll behavi
 
 ## Assets
 
-`assets/` currently holds placeholders, visibly stamped `PLACEHOLDER`. The upload-to-feature mapping below comes from the handoff and is **not** in filename order — note that `2.PNG` and `3.PNG` are swapped relative to the feature order:
+`assets/` currently holds placeholders, visibly stamped `PLACEHOLDER`. The upload-to-feature mapping comes from the handoff and has been confirmed against the screenshots themselves. It is **not** in filename order:
 
-| Design upload | Ships as | Feature |
-|---|---|---|
-| `1.PNG` | `shot-1` | 1 — Interface polish |
-| `Group 2.png` | `shot-2` | 2 — Account linking |
-| `3.PNG` | `shot-3` | 3 — Dark Mode |
-| `2.PNG` | `shot-4` | 4 — Membership expiry |
-| `4.PNG` | `shot-5` | 5 — Trip stats |
-| `rocket-lineart-even@2x.png` | `rocket-lineart` | hero |
+| Design upload | Ships as | Feature | Screen |
+|---|---|---|---|
+| `1.PNG` | `shot-1` | 1 — Interface polish | Home, dark |
+| `Group 2.png` | `shot-2` | 2 — Account linking | Login & security |
+| `3.PNG` | `shot-3` | 3 — Dark Mode | Settings, dark |
+| `2.PNG` | `shot-4` | 4 — Membership expiry | Settings, light (Pro+ expiry row) |
+| `4.PNG` | `shot-5` | 5 — Trip stats | My Trips, flight passport card |
+| `rocket-lineart-even@2x.png` | `rocket-lineart` | hero | — |
+
+`2.PNG` and `3.PNG` look swapped because they are the light and dark captures of the *same* Settings screen: the dark one illustrates Dark Mode, the light one illustrates the membership expiry row. The ordering is deliberate, not an error in the handoff.
+
+Note that feature 1 and 3 use dark captures while feature 4 uses a light one, so the page shows a mix of both in either scheme. That is what the design specifies.
 
 To swap in the real images:
 

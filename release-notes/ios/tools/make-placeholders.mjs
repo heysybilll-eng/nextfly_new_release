@@ -17,11 +17,11 @@ import { ASSETS } from './_shared.mjs';
  * Labels follow the design handoff's upload-to-feature mapping.
  */
 const ITEMS = [
-  { name: 'shot-1',         w: 600, h: 1299, label: '1.PNG · Interface polish' },
-  { name: 'shot-2',         w: 600, h: 1299, label: 'Group 2.png · Account linking' },
-  { name: 'shot-3',         w: 600, h: 1299, label: '3.PNG · Dark Mode' },
-  { name: 'shot-4',         w: 600, h: 1299, label: '2.PNG · Membership expiry' },
-  { name: 'shot-5',         w: 600, h: 1299, label: '4.PNG · Trip stats' },
+  { name: 'shot-1',         w: 600, h: 1299, label: '1.PNG · Home, dark' },
+  { name: 'shot-2',         w: 600, h: 1299, label: 'Group 2.png · Login & security' },
+  { name: 'shot-3',         w: 600, h: 1299, label: '3.PNG · Settings, dark' },
+  { name: 'shot-4',         w: 600, h: 1299, label: '2.PNG · Settings, light' },
+  { name: 'shot-5',         w: 600, h: 1299, label: '4.PNG · My Trips, passport' },
   { name: 'rocket-lineart', w: 680, h: 680,  label: 'Rocket line art', lineart: true }
 ];
 

@@ -26,12 +26,16 @@ if (!SRC) {
  * design upload -> shipped asset + max rendered width in CSS px.
  *
  * The upload-to-feature mapping is NOT in filename order — it comes from the
- * design handoff's Assets section and is the authority here:
- *   1.PNG       -> feature 1, interface polish
- *   Group 2.png -> feature 2, account linking
- *   3.PNG       -> feature 3, Dark Mode
- *   2.PNG       -> feature 4, membership expiry      (note: 2 and 3 are swapped)
- *   4.PNG       -> feature 5, trip stats
+ * design handoff's Assets section, confirmed against the screenshots themselves:
+ *   1.PNG       -> feature 1, interface polish    (Home, dark)
+ *   Group 2.png -> feature 2, account linking     (Login & security)
+ *   3.PNG       -> feature 3, Dark Mode           (Settings, dark)
+ *   2.PNG       -> feature 4, membership expiry   (Settings, light — Pro+ expiry row)
+ *   4.PNG       -> feature 5, trip stats          (My Trips, flight passport card)
+ *
+ * 2.PNG and 3.PNG look "swapped" because they are the light and dark captures
+ * of the same Settings screen: the dark one illustrates Dark Mode, the light
+ * one illustrates the membership expiry row. The ordering is deliberate.
  *
  * Screenshots render at 66% of the 400px panel content box (~264 CSS px), so
  * 600px covers 2x with headroom. The rocket renders at up to 340px.
