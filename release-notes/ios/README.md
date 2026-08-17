@@ -93,6 +93,28 @@ Two items for the localization owner:
 
 ---
 
+## Responsive behaviour
+
+The page adapts by constraint rather than by breakpoints: `max-width: 480px` with `margin: 0 auto` caps and centres the column, gutters are `max(18px, env(safe-area-inset-*))`, screenshots are `width: 66%`, and the hero is `width: 100%` up to `max-width: 340px`. Measured, with zero horizontal overflow at every width:
+
+| | column | screenshot | body copy |
+|---|---|---|---|
+| 320 (SE) | 320 | 158 | ~33 chars/line |
+| 390 (14) | 390 | 205 | ~42 |
+| 430 (Pro Max) | 430 | 231 | ~46 |
+| 768+ | 480 | 264 | ~52 |
+
+Two width breakpoints sit on top of that. **Neither comes from the design**, which specifies one scale for one phone-width column — they exist so the page holds up outside its intended envelope, and both are asserted in `assert-spec.mjs` so they cannot silently regress.
+
+- **`max-width: 359px`** — hero heading 34→28px, feature titles 22→18px, gutter 18→16px. At 320px the design scale runs the heading to the edge and breaks the intro onto three lines. Body copy, colour and spacing rhythm are untouched.
+- **`min-width: 600px`** — the column becomes a bordered, rounded card on a `--surface-elevated` ground, and the header drops `position: sticky` so it cannot slide out of the card's rounded top. Nothing inside the column changes. This is a fallback for the URL being opened in a desktop browser or a large iPad; in the app it never applies.
+
+`assert-spec.mjs` also asserts that **390pt renders exactly as before** — no card, sticky header, 34px heading, 18px gutter — so the in-app path is pinned against both new rules.
+
+Not covered: type is fixed `px` and `text-size-adjust` is pinned to `100%`, so the page does not respond to iOS Dynamic Type or a browser's root font-size setting. That is a deliberate trade for layout fidelity on a short, read-once page; moving to `rem` and releasing `text-size-adjust` would be the fix if accessibility requirements change.
+
+---
+
 ## Locale typography
 
 The design specifies one Latin-tuned treatment. Two corrections sit on top of it, both needed to render that design faithfully rather than to restyle it:

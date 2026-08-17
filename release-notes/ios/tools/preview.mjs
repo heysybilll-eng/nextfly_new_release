@@ -96,7 +96,13 @@ ${lightDecls}
 :root[data-theme="light"] .hero-art { filter: none; }
 `;
 
+/* The host supplies <head>, so this meta is normally redundant — but if it
+   ever ships without one, a mobile browser falls back to a ~980px layout
+   viewport, the min-width:600px rule matches on a phone, and the page renders
+   as a desktop card at unreadable size. Browsers honour the tag wherever they
+   find it, and a duplicate with identical content is inert. */
 const out = `<title>${TITLE}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 ${css}
 </style>

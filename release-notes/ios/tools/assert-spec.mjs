@@ -230,6 +230,85 @@ for (const [scheme, C] of [['light', LIGHT], ['dark', DARK]]) {
 
 await browser.close();
 
+/* ============================================================================
+   BREAKPOINTS
+   ---------------------------------------------------------------------------
+   Neither breakpoint comes from the design — the handoff specifies one scale
+   for one phone-width column. They exist so the page holds up on a 320pt
+   phone and when the URL is opened outside the app. Asserted here so they
+   cannot silently regress, and so the 390pt gate above stays the authority on
+   design fidelity.
+   ========================================================================== */
+const BREAKPOINTS = [
+  {
+    name: 'narrow (320)',
+    width: 320, height: 568, dpr: 2, mobile: true,
+    checks: [
+      ['.hero__heading', 'fontSize', '28px'],
+      ['.f__title', 'fontSize', '18px'],
+      ['.body', 'paddingLeft', '16px'],
+      ['.f__body', 'fontSize', '17px'],          // body copy must NOT shrink
+      ['.hdr', 'position', 'sticky']
+    ]
+  },
+  {
+    name: 'wide (1280)',
+    width: 1280, height: 800, dpr: 1, mobile: false,
+    checks: [
+      ['body', 'backgroundColor', LIGHT.elevated],
+      ['.shell', 'maxWidth', '480px'],
+      ['.shell', 'backgroundColor', LIGHT.bg],
+      ['.shell', 'borderTopWidth', '1px'],
+      ['.shell', 'borderTopColor', LIGHT.hairline],
+      ['.shell', 'borderRadius', '20px'],
+      ['.hdr', 'position', 'static'],            // must not detach from the card
+      ['.hero__heading', 'fontSize', '34px'],    // design scale, unchanged
+      ['.f__title', 'fontSize', '22px']
+    ]
+  },
+  {
+    name: 'phone (390) unchanged',
+    width: 390, height: 844, dpr: 3, mobile: true,
+    checks: [
+      ['body', 'backgroundColor', LIGHT.bg],     // no card treatment in-app
+      ['.shell', 'maxWidth', 'none'],
+      ['.shell', 'borderTopWidth', '0px'],
+      ['.hdr', 'position', 'sticky'],
+      ['.hero__heading', 'fontSize', '34px'],
+      ['.body', 'paddingLeft', '18px']
+    ]
+  }
+];
+
+const bp = await chromium.launch({ executablePath: CHROMIUM });
+for (const b of BREAKPOINTS) {
+  const ctx = await bp.newContext({
+    viewport: { width: b.width, height: b.height },
+    deviceScaleFactor: b.dpr,
+    isMobile: b.mobile,
+    colorScheme: 'light'
+  });
+  const page = await ctx.newPage();
+  await page.goto(pageUrl({ lang: 'en' }), { waitUntil: 'load' });
+  await page.waitForTimeout(150);
+
+  const results = await page.evaluate((spec) => spec.map(([sel, prop, want]) => {
+    const el = document.querySelector(sel);
+    if (!el) return { sel, prop, want, got: '<no such element>', ok: false };
+    const got = getComputedStyle(el)[prop];
+    return { sel, prop, want, got, ok: got === want };
+  }), b.checks);
+
+  const bad = results.filter(r => !r.ok);
+  checked += results.length;
+  failed += bad.length;
+  console.log(`\n[${b.name}]  ${results.length - bad.length}/${results.length} assertions pass`);
+  for (const r of bad) console.log(`  ${r.sel} { ${r.prop} }  expected ${r.want}  got ${r.got}`);
+
+  await ctx.close();
+}
+await bp.close();
+
 if (failed) {
   console.error(`\nFAIL: ${failed} deviation(s) from the design spec.`);
   process.exit(1);

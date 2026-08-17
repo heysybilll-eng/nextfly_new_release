@@ -394,6 +394,53 @@ body.sheet-open { overflow: hidden; }
 /* Long German compounds and Russian tokens must never widen the page. */
 .f__title, .hero__heading, .parity__title { overflow-wrap: anywhere; }
 
+/* ============================================================================
+   NARROW SCREENS  (iPhone SE / mini, 320-359pt)
+   ---------------------------------------------------------------------------
+   Not from the design, which specifies a single type scale. At 320px that
+   scale runs the hero heading to the edge and breaks the intro onto three
+   lines. Only the two display sizes and the gutter step down; body copy,
+   colour and spacing rhythm are untouched.
+   ========================================================================== */
+@media (max-width: 359px) {
+  :root { --gutter: 16px; }
+  .hero__heading { font-size: 28px; }
+  .f__title { font-size: 18px; }
+}
+
+/* ============================================================================
+   WIDE SCREENS  (600px and up)
+   ---------------------------------------------------------------------------
+   Also not from the design: in the app this is only ever a phone-width
+   WebView. This is a fallback for the URL being opened in a desktop browser
+   or a large iPad, where a bare 480px column stranded in empty space reads as
+   broken rather than deliberate. Nothing inside the column changes, so
+   rendering at phone widths is unaffected.
+   ========================================================================== */
+@media (min-width: 600px) {
+  body { background: var(--surface-elevated); }
+
+  .shell {
+    max-width: var(--page-max);
+    margin: 40px auto;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-hairline);
+    border-radius: 20px;
+  }
+
+  /* Sticky would slide the header out of the card's rounded top, and there is
+     no reach problem to solve on a pointer device. */
+  .hdr {
+    position: static;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  /* The safe-area insets are meaningless here and the card supplies the
+     breathing room the viewport padding was providing. */
+  .body { padding-bottom: 56px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -403,6 +450,8 @@ body.sheet-open { overflow: hidden; }
 </style>
 </head>
 <body>
+
+<div class="shell">
 
 <header class="hdr">
   <div class="hdr__in">
@@ -477,6 +526,8 @@ body.sheet-open { overflow: hidden; }
   <p class="feedback" data-t="feedback"></p>
 
 </main>
+
+</div>
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <div class="sheet__panel" id="sheetPanel">
