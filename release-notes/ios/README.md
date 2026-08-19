@@ -75,6 +75,26 @@ https://<host>/release-notes/ios/?lang=ja&v=2.0.5
 | `v` | no | Version in the hero heading. Default `2.0.5`. Accepts `[\w.\-]{1,24}`. |
 | `vw` | no | The word before the version. Default `Version`. Not localized — matches the design, where `versionWord` is a config input rather than a translated string. |
 | `theme` | no | `light` / `dark`. **QA only** — ship without it so the page follows the OS. |
+| `fullbleed` | no | `1` when the WebView is presented edge-to-edge under the status bar. Adds the top safe-area inset. Omit when the host has its own nav bar. |
+| `header` | no | `0` hides the page's own title, keeping only the language control. Use when the host's nav bar already shows a title. |
+
+### Presentation parameters
+
+Neither of these is detectable from inside a WebView, so the host has to say.
+
+The page does **not** add a top safe-area inset by default. The design has the
+host own dismissal, which means a native nav bar exists and has already
+consumed the status bar; adding `env(safe-area-inset-top)` on top of that
+inserts a second status-bar-sized gap. On Android the inset is measured against
+the window, so it stays non-zero even when the WebView starts below the native
+toolbar — which is exactly how that gap appeared in testing.
+
+| Presentation | Parameters |
+|---|---|
+| Native nav bar showing its own title (typical) | `?header=0` |
+| Native nav bar, no title | *(none)* |
+| Edge-to-edge, page supplies its own header | `?fullbleed=1` |
+
 
 **Supported languages:** `en` `fr` `de` `it` `es` `ja` `ko` `zh-TW` `id` `hi` `ru`
 

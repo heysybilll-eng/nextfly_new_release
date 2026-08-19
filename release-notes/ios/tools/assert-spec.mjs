@@ -60,6 +60,10 @@ function specFor(C) {
     ['.hdr', 'zIndex', '20'],
     ['.hdr', 'backgroundColor', C.bg],
     ['.hdr', 'borderBottomWidth', '0px'],
+    // No top safe-area inset by default: the host owns the nav bar and has
+    // already consumed the status bar. Doubling it is what put a status-bar
+    // sized gap under the native toolbar on Android.
+    ['.hdr', 'paddingTop', '0px'],
     ['.hdr__in', 'maxWidth', '480px'],
     ['.hdr__in', 'paddingTop', '8px'],
     ['.hdr__in', 'paddingLeft', '12px'],

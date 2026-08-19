@@ -122,8 +122,20 @@ body {
   top: 0;
   z-index: 20;
   background: var(--surface-bg);
-  padding-top: env(safe-area-inset-top, 0px);
 }
+/* The top inset is NOT applied by default. The design has the host own
+   dismissal, which means the host supplies its own nav bar and has already
+   consumed the status bar. Adding env(safe-area-inset-top) on top of that
+   inserts a second status-bar-sized gap — and on Android the value is measured
+   against the window, so it stays non-zero even though the WebView starts
+   below the native bar. Hosts that present the page edge-to-edge opt in with
+   ?fullbleed=1. */
+:root[data-fullbleed] .hdr { padding-top: env(safe-area-inset-top, 0px); }
+
+/* ?header=0 — the host's nav bar already shows the title, so drop ours and
+   keep only the language control. */
+:root[data-noheader] .hdr__title { display: none; }
+:root[data-noheader] .langbtn { margin-left: auto; }
 .hdr__in {
   max-width: var(--page-max);
   margin: 0 auto;
@@ -928,6 +940,15 @@ body.sheet-open { overflow: hidden; }
   var theme = params().get('theme');
   if (theme === 'light' || theme === 'dark') {
     document.documentElement.setAttribute('data-scheme', theme);
+  }
+
+  /* Presentation hints from the host. Neither is detectable from inside the
+     WebView, so the host has to say. */
+  if (params().get('fullbleed') === '1') {
+    document.documentElement.setAttribute('data-fullbleed', '');
+  }
+  if (params().get('header') === '0') {
+    document.documentElement.setAttribute('data-noheader', '');
   }
 
   if (document.readyState === 'loading') {
