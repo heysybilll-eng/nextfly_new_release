@@ -30,7 +30,7 @@ const BY_RELEASE = {
     { name: 'rocket-lineart',       w: 680, h: 707, label: 'Rocket line art', lineart: true },
     { name: 'rocket-lineart-white', w: 680, h: 707, label: 'Rocket line art', lineart: true, white: true }
   ],
-  'v2.1.0': [
+  'v2.0.6': [
     { name: 'shot-1', w: 600, h: 1301, label: "Who's it for? · 角色绑定" },
     { name: 'shot-2', w: 600, h: 1301, label: 'My Trips 筛选栏 · 行程筛选' },
     { name: 'shot-3', w: 600, h: 1301, label: '搜索 + 自定义键盘' },

@@ -20,7 +20,7 @@ import { LOCALES, VIEWPORTS, SCHEMES, OUT, CHROMIUM, argOf, hasFlag, pageUrl, RE
 
 const HERO = {
   'v2.0.5': ['rocket-lineart.png', 'rocket-lineart-white.png'],
-  'v2.1.0': ['hero.png', 'hero-white.png']
+  'v2.0.6': ['hero.png', 'hero-white.png']
 }[RELEASE];
 
 const ONE_LANG = argOf('--lang');
@@ -29,7 +29,7 @@ const ONE_SCHEME = argOf('--scheme');
 const GATE_ONLY = hasFlag('--gate');
 
 /** Feature bodies 1-4 carry marker-underlined phrases; block 5 does not. */
-const MARKED_KEYS = { 'v2.0.5': ['f1b','f2b','f3b','f4b'], 'v2.1.0': ['f1b','f2b','f3b','f4b','f5b'] }[RELEASE];
+const MARKED_KEYS = { 'v2.0.5': ['f1b','f2b','f3b','f4b'], 'v2.0.6': ['f1b','f2b','f3b','f4b','f5b'] }[RELEASE];
 
 const locales = ONE_LANG ? [ONE_LANG] : LOCALES;
 const schemes = ONE_SCHEME ? [ONE_SCHEME] : SCHEMES;

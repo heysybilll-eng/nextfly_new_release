@@ -6,7 +6,7 @@ In-app release-notes page for the Nextfly iOS WebView, built from the Claude Des
 release-notes/ios/
   releases/
     v2.0.5/       index.html + assets/ + the shipped zip
-    v2.1.0/       ditto
+    v2.0.6/       ditto
   tools/          shared gates; NOT part of the deployed output
 ```
 

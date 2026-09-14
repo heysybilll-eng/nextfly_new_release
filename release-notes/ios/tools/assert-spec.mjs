@@ -25,7 +25,7 @@ import { VIEWPORTS, CHROMIUM, pageUrl, RELEASE } from './_shared.mjs';
 /** Each release ships its own hero artwork. */
 const HERO = {
   'v2.0.5': ['rocket-lineart.png', 'rocket-lineart-white.png'],
-  'v2.1.0': ['hero.png', 'hero-white.png']
+  'v2.0.6': ['hero.png', 'hero-white.png']
 }[RELEASE];
 if (!HERO) throw new Error(`No hero filenames defined for ${RELEASE}`);
 
