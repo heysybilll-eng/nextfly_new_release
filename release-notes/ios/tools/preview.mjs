@@ -16,9 +16,9 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { ROOT, PAGE, OUT } from './_shared.mjs';
+import { ROOT, PAGE, OUT, VERSION } from './_shared.mjs';
 
-const TITLE = 'NextFly 2.0.5 What&rsquo;s New';
+const TITLE = `NextFly ${VERSION} What&rsquo;s New`;
 const MIME = { '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg' };
 
 let html = await fs.readFile(PAGE, 'utf8');
@@ -94,6 +94,11 @@ css += `
    stamps nothing when they leave it on system. The bare :root above covers
    light, the media query above covers system-dark, and these two cover the
    explicit choices. Declared last so they win over the media query.
+
+   --hero-art is one of those tokens, so the illustration swaps with the
+   palette. An earlier version also forced filter: invert(1) here, left over
+   from when a single black asset was inverted for dark mode; layered on top
+   of the white asset it now yields black strokes on a black ground.
    ========================================================================== */
 :root[data-theme="dark"] {
 ${darkDecls}
@@ -101,8 +106,6 @@ ${darkDecls}
 :root[data-theme="light"] {
 ${lightDecls}
 }
-:root[data-theme="dark"] .hero-art { filter: invert(1); }
-:root[data-theme="light"] .hero-art { filter: none; }
 `;
 
 /* The host supplies <head>, so this meta is normally redundant — but if it
