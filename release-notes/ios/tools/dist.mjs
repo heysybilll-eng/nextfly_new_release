@@ -18,6 +18,7 @@ import { ROOT, PAGE, VERSION } from './_shared.mjs';
 
 const run = promisify(execFile);
 
+const TOOLS = path.dirname(new URL(import.meta.url).pathname);
 const NAME = `nextfly-release-notes-ios-v${VERSION}`;
 const DIST = path.join(ROOT, 'dist');
 const STAGE = path.join(DIST, NAME);
@@ -43,12 +44,27 @@ for (const rel of referenced) {
   assetBytes += stat.size;
 }
 
-// The single-file variant, for backends that accept only one file.
+/* The single-file variant, for backends that accept only one file.
+
+   Built here rather than copied from whatever happens to be sitting in the
+   release directory. An earlier version copied it, and a package once shipped
+   a standalone build one feature block behind index.html — the two files are
+   the same page, so nothing downstream could have caught the difference. */
+await run('node', [path.join(TOOLS, 'inline.mjs')]);
 const standalone = path.join(ROOT, 'index.standalone.html');
-let hasStandalone = false;
-if (await fs.stat(standalone).then(() => true).catch(() => false)) {
-  await fs.copyFile(standalone, path.join(STAGE, 'index.standalone.html'));
-  hasStandalone = true;
+await fs.copyFile(standalone, path.join(STAGE, 'index.standalone.html'));
+const hasStandalone = true;
+
+/* Cheap proof the two agree on what the page is. Section count is the thing
+   that actually drifted; comparing it is enough to catch a regenerate that
+   silently did not run. */
+const sections = h => (h.match(/<section class="f\b/g) || []).length;
+const inlinedHtml = await fs.readFile(standalone, 'utf8');
+if (sections(inlinedHtml) !== sections(html)) {
+  throw new Error(
+    `index.standalone.html has ${sections(inlinedHtml)} feature sections, ` +
+    `index.html has ${sections(html)} — the inlined build is stale.`
+  );
 }
 
 const kb = n => (n / 1024).toFixed(1) + ' KB';
@@ -133,7 +149,7 @@ On Android WebView the equivalent is
 
 ## Verified before packaging
 
-- 212 computed-style assertions against the design handoff, across light and
+- 214 computed-style assertions against the design handoff, across light and
   dark and three widths
 - 66 layout combinations: 11 locales x 3 viewports x 2 colour schemes, checking
   horizontal overflow, clipped glyphs, unresolved copy, broken images and
