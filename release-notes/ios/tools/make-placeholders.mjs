@@ -33,10 +33,11 @@ const BY_RELEASE = {
   'v2.0.6': [
     { name: 'shot-1', w: 600, h: 1301, label: "Who's it for? · 角色绑定" },
     { name: 'shot-2', w: 600, h: 1301, label: 'My Trips 筛选栏 · 行程筛选' },
-    { name: 'shot-3', w: 600, h: 1301, label: '搜索 + 自定义键盘' },
-    { name: 'shot-4', w: 600, h: 1301, label: '主屏小组件' },
-    { name: 'shot-5', w: 600, h: 1301, label: '锁屏实时活动 · 灵动岛' },
-    { name: 'shot-6', w: 600, h: 1301, label: 'Feedback · 用户反馈' },
+    { name: 'shot-3', w: 600, h: 1301, label: 'My Trips 行程卡备注' },
+    { name: 'shot-4', w: 600, h: 1301, label: '搜索 + 自定义键盘' },
+    { name: 'shot-5', w: 600, h: 1301, label: '主屏小组件' },
+    { name: 'shot-6', w: 600, h: 1301, label: '锁屏实时活动 · 灵动岛' },
+    { name: 'shot-7', w: 600, h: 1301, label: 'Feedback · 用户反馈' },
     { name: 'hero',       w: 680, h: 742, label: 'Hero line art', lineart: true },
     { name: 'hero-white', w: 680, h: 742, label: 'Hero line art', lineart: true, white: true }
   ]

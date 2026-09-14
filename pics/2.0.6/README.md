@@ -1,29 +1,34 @@
-# 2.0.6 素材（待补）
+# 2.0.6 素材
 
-目录是空的。H5 已经建好，`releases/v2.0.6/assets/` 里目前是占位图，每张都标了
-该放什么画面。把下面 8 个文件放进这个目录，然后跑一条命令就能替换。
+这里是**原图**。上线资产由 `release-notes/ios/tools/build-assets.mjs` 从这里转码
+生成，输出到 `release-notes/ios/releases/v2.0.6/assets/`。
 
-## 需要的文件
+## 对应关系
 
-| 建议文件名 | 功能块 | 画面 |
+| 文件 | 功能块 | 画面 |
 |---|---|---|
-| `1.PNG` | 1 关注角色 | Who's it for? sheet（Drop-off/Pick-up + 角色网格） |
-| `2.PNG` | 2 按人筛选 | My Trips 顶部筛选栏 + 带角色标签的行程卡 |
-| `3.PNG` | 3 航班号键盘 | 搜索页 + 自定义键盘 |
-| `4.PNG` | 4 主屏小组件 | 主屏，NextFly 小组件 |
-| `5.PNG` | 5 灵动岛焕新 | 锁屏实时活动 |
-| `6.PNG` | 6 意见反馈 | Feedback「How can we help?」 |
-| `hero@2x.png` | hero | 新插图，**黑**线稿，透明底 |
-| `hero-white@2x.png` | hero | 新插图，**白**线稿，透明底 |
+| `他人航班关注.PNG` | 1 关注角色 | Who's it for? sheet（Drop-off/Pick-up + 角色网格） |
+| `行程筛选器.PNG` | 2 按人筛选 | My Trips 顶部筛选栏 + 带角色标签的行程卡 |
+| `备注.PNG` | 3 航班备注 | My Trips 行程卡上的备注行 |
+| `自定义键盘.PNG` | 4 航班号键盘 | 搜索页 + 自定义键盘 |
+| `小组件.PNG` | 5 主屏小组件 | 主屏，NextFly 小组件 |
+| `实时活动_new.PNG` | 6 灵动岛焕新 | 锁屏实时活动 |
+| `用户反馈页面.PNG` | 7 意见反馈 | Feedback「How can we help?」 |
+| `header.png` | hero | 首屏插图，**黑**线稿，透明底 |
+| `0_3-white-line-transparent-4x.png` | hero | 首屏插图，**白**线稿，透明底（深色模式用） |
+
+未进 H5 的备用图：`角色管理入口.PNG`、`角色管理列表.PNG`、`新建角色.PNG`、
+`用户反馈入口.PNG`。
 
 ## 两件要注意的
 
 **插图必须是透明底。** 深色模式直接换成白色那张，不做反色处理。如果是白底
 PNG，深色下会出现一个白色方块。
 
-**白色版目前还没有。** 已经收到的只有黑线稿那张（拿笔的人 + 灯泡 + 云）。
+**黑色版 `header.png` 只有 634px（约 1.86x）**，白色版是 4x。黑线稿在
+Retina 上会比白线稿糊，建议按 4x 重新导出。
 
-## 替换步骤
+## 改图之后
 
 ```bash
 cd release-notes/ios
@@ -33,5 +38,5 @@ npm run check          # 214 条样式断言 + 66 组布局扫描
 node tools/dist.mjs    # 出包
 ```
 
-文件名和上表不一致也行，改 `tools/build-assets.mjs` 里 `MAP` 的 `from` 字段
-即可；解析器会按文件名主干匹配，所以 iOS 导出带的时间戳后缀不用手动去掉。
+文件名是映射关系的一部分，改名要连 `tools/build-assets.mjs` 里的 `from` 字段
+一起改；解析器按文件名主干匹配，所以 iOS 导出带的时间戳后缀不用手动去掉。

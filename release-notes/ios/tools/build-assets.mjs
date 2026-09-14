@@ -43,10 +43,11 @@ const BY_RELEASE = {
   'v2.0.6': [
     { from: '他人航班关注.PNG',                  to: 'shot-1',     maxCssWidth: 300 },
     { from: '行程筛选器.PNG',                    to: 'shot-2',     maxCssWidth: 300 },
-    { from: '自定义键盘.PNG',                    to: 'shot-3',     maxCssWidth: 300 },
-    { from: '小组件.PNG',                       to: 'shot-4',     maxCssWidth: 300 },
-    { from: '实时活动（灵动岛）.PNG',              to: 'shot-5',     maxCssWidth: 300 },
-    { from: '用户反馈页面.PNG',                  to: 'shot-6',     maxCssWidth: 300 },
+    { from: '备注.PNG',                         to: 'shot-3',     maxCssWidth: 300 },
+    { from: '自定义键盘.PNG',                    to: 'shot-4',     maxCssWidth: 300 },
+    { from: '小组件.PNG',                       to: 'shot-5',     maxCssWidth: 300 },
+    { from: '实时活动_new.PNG',                  to: 'shot-6',     maxCssWidth: 300 },
+    { from: '用户反馈页面.PNG',                  to: 'shot-7',     maxCssWidth: 300 },
     { from: 'header.png',                     to: 'hero',       maxCssWidth: 340 },
     { from: '0_3-white-line-transparent-4x.png', to: 'hero-white', maxCssWidth: 340 }
   ]

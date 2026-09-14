@@ -29,7 +29,7 @@ const ONE_SCHEME = argOf('--scheme');
 const GATE_ONLY = hasFlag('--gate');
 
 /** Feature bodies 1-4 carry marker-underlined phrases; block 5 does not. */
-const MARKED_KEYS = { 'v2.0.5': ['f1b','f2b','f3b','f4b'], 'v2.0.6': ['f1b','f2b','f3b','f4b','f5b'] }[RELEASE];
+const MARKED_KEYS = { 'v2.0.5': ['f1b','f2b','f3b','f4b'], 'v2.0.6': ['f1b','f2b','f3b','f4b','f5b','f6b'] }[RELEASE];
 
 const locales = ONE_LANG ? [ONE_LANG] : LOCALES;
 const schemes = ONE_SCHEME ? [ONE_SCHEME] : SCHEMES;

@@ -35,4 +35,4 @@ node tools/build-assets.mjs --src ../../pics/2.0.6
 
 ## 2.0.6
 
-见 `2.0.6/README.md`——目录是空的，等素材。
+见 `2.0.6/README.md`——7 张功能截图 + 黑/白两版首屏插图，已齐。
