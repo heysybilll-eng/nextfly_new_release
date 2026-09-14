@@ -14,7 +14,7 @@
 import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { ASSETS, argOf } from './_shared.mjs';
+import { ASSETS, argOf, RELEASE } from './_shared.mjs';
 
 const SRC = argOf('--src');
 if (!SRC) {
@@ -23,32 +23,40 @@ if (!SRC) {
 }
 
 /**
- * design upload -> shipped asset + max rendered width in CSS px.
- *
- * The upload-to-feature mapping is NOT in filename order — it comes from the
- * design handoff's Assets section, confirmed against the screenshots themselves:
- *   1.PNG       -> feature 1, interface polish    (Home, dark)
- *   Group 2.png -> feature 2, account linking     (Login & security)
- *   3.PNG       -> feature 3, Dark Mode           (Settings, dark)
- *   2.PNG       -> feature 4, membership expiry   (Settings, light — Pro+ expiry row)
- *   4.PNG       -> feature 5, trip stats          (My Trips, flight passport card)
- *
- * 2.PNG and 3.PNG look "swapped" because they are the light and dark captures
- * of the same Settings screen: the dark one illustrates Dark Mode, the light
- * one illustrates the membership expiry row. The ordering is deliberate.
+ * design upload -> shipped asset + max rendered width in CSS px, per release.
  *
  * Screenshots render at 66% of the 400px panel content box (~264 CSS px), so
- * 600px covers 2x with headroom. The rocket renders at up to 340px.
+ * 600px covers 2x with headroom. The hero renders up to 340px.
  */
-const MAP = [
-  { from: '1.PNG',                          to: 'shot-1',          maxCssWidth: 300 },
-  { from: 'Group 2.png',                    to: 'shot-2',          maxCssWidth: 300 },
-  { from: '3.PNG',                          to: 'shot-3',          maxCssWidth: 300 },
-  { from: '2.PNG',                          to: 'shot-4',          maxCssWidth: 300 },
-  { from: '4.PNG',                          to: 'shot-5',          maxCssWidth: 300 },
-  { from: 'rocket-lineart-even@2x.png',        to: 'rocket-lineart',       maxCssWidth: 340 },
-  { from: 'rocket-lineart-even-white@2x.png',  to: 'rocket-lineart-white', maxCssWidth: 340 }
-];
+const BY_RELEASE = {
+  'v2.0.5': [
+    // Not in filename order: 2.PNG and 3.PNG are the light and dark captures of
+    // the same Settings screen, feeding membership-expiry and Dark Mode.
+    { from: '1.PNG',                          to: 'shot-1',               maxCssWidth: 300 },
+    { from: 'Group 2.png',                    to: 'shot-2',               maxCssWidth: 300 },
+    { from: '3.PNG',                          to: 'shot-3',               maxCssWidth: 300 },
+    { from: '2.PNG',                          to: 'shot-4',               maxCssWidth: 300 },
+    { from: '4.PNG',                          to: 'shot-5',               maxCssWidth: 300 },
+    { from: 'rocket-lineart-even@2x.png',     to: 'rocket-lineart',       maxCssWidth: 340 },
+    { from: 'rocket-lineart-even-white@2x.png', to: 'rocket-lineart-white', maxCssWidth: 340 }
+  ],
+  'v2.0.6': [
+    { from: '他人航班关注.PNG',                  to: 'shot-1',     maxCssWidth: 300 },
+    { from: '行程筛选器.PNG',                    to: 'shot-2',     maxCssWidth: 300 },
+    { from: '自定义键盘.PNG',                    to: 'shot-3',     maxCssWidth: 300 },
+    { from: '小组件.PNG',                       to: 'shot-4',     maxCssWidth: 300 },
+    { from: '实时活动（灵动岛）.PNG',              to: 'shot-5',     maxCssWidth: 300 },
+    { from: '用户反馈页面.PNG',                  to: 'shot-6',     maxCssWidth: 300 },
+    { from: 'header.png',                     to: 'hero',       maxCssWidth: 340 },
+    { from: '0_3-white-line-transparent-4x.png', to: 'hero-white', maxCssWidth: 340 }
+  ]
+};
+
+const MAP = BY_RELEASE[RELEASE];
+if (!MAP) {
+  console.error(`No asset map defined for ${RELEASE}`);
+  process.exit(2);
+}
 
 const DPR = 2;
 await fs.mkdir(ASSETS, { recursive: true });
