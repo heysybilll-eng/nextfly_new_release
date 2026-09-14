@@ -20,7 +20,14 @@
  * bundle is available locally.
  */
 import { chromium } from 'playwright';
-import { VIEWPORTS, CHROMIUM, pageUrl } from './_shared.mjs';
+import { VIEWPORTS, CHROMIUM, pageUrl, RELEASE } from './_shared.mjs';
+
+/** Each release ships its own hero artwork. */
+const HERO = {
+  'v2.0.5': ['rocket-lineart.png', 'rocket-lineart-white.png'],
+  'v2.1.0': ['hero.png', 'hero-white.png']
+}[RELEASE];
+if (!HERO) throw new Error(`No hero filenames defined for ${RELEASE}`);
 
 const rgb = (r, g, b) => `rgb(${r}, ${g}, ${b})`;
 
@@ -32,7 +39,7 @@ const LIGHT = {
   primary:   rgb(22, 22, 26),     // --text-primary     #16161A
   secondary: rgb(110, 110, 115),  // --text-secondary   #6E6E73
   tertiary:  rgb(174, 174, 178),  // --text-tertiary    #AEAEB2
-  heroArt:   'rocket-lineart.png'
+  heroArt:   HERO[0]
 };
 
 const DARK = {
@@ -43,7 +50,7 @@ const DARK = {
   primary:   rgb(255, 255, 255),  // #FFFFFF
   secondary: rgb(142, 142, 147),  // #8E8E93
   tertiary:  rgb(99, 99, 102),    // #636366
-  heroArt:   'rocket-lineart-white.png'
+  heroArt:   HERO[1]
 };
 
 const ACCENT = rgb(62, 106, 225); // --accent-primary #3E6AE1

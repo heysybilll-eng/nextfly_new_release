@@ -9,21 +9,44 @@
 import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { ASSETS } from './_shared.mjs';
+import { ASSETS, RELEASE } from './_shared.mjs';
 
 /**
  * Sizes must match the width/height attributes in index.html, otherwise the
  * reserved aspect ratio is wrong and the page shifts as images decode.
  * Labels follow the design handoff's upload-to-feature mapping.
  */
-const ITEMS = [
-  { name: 'shot-1',         w: 600, h: 1301, label: '1.PNG · Home, dark' },
-  { name: 'shot-2',         w: 600, h: 1301, label: 'Group 2.png · Login & security' },
-  { name: 'shot-3',         w: 600, h: 1301, label: '3.PNG · Settings, dark' },
-  { name: 'shot-4',         w: 600, h: 1301, label: '2.PNG · Settings, light' },
-  { name: 'shot-5',         w: 600, h: 1301, label: '4.PNG · My Trips, passport' },
-  { name: 'rocket-lineart', w: 680, h: 707,  label: 'Rocket line art', lineart: true }
-];
+/**
+ * Slots per release. Labels name the screen each slot expects, so a reviewer
+ * can tell at a glance whether a dropped-in asset landed in the right place.
+ */
+const BY_RELEASE = {
+  'v2.0.5': [
+    { name: 'shot-1', w: 600, h: 1301, label: '1.PNG · Home, dark' },
+    { name: 'shot-2', w: 600, h: 1301, label: 'Group 2.png · Login & security' },
+    { name: 'shot-3', w: 600, h: 1301, label: '3.PNG · Settings, dark' },
+    { name: 'shot-4', w: 600, h: 1301, label: '2.PNG · Settings, light' },
+    { name: 'shot-5', w: 600, h: 1301, label: '4.PNG · My Trips, passport' },
+    { name: 'rocket-lineart',       w: 680, h: 707, label: 'Rocket line art', lineart: true },
+    { name: 'rocket-lineart-white', w: 680, h: 707, label: 'Rocket line art', lineart: true, white: true }
+  ],
+  'v2.1.0': [
+    { name: 'shot-1', w: 600, h: 1301, label: "Who's it for? · 角色绑定" },
+    { name: 'shot-2', w: 600, h: 1301, label: 'My Trips 筛选栏 · 行程筛选' },
+    { name: 'shot-3', w: 600, h: 1301, label: '搜索 + 自定义键盘' },
+    { name: 'shot-4', w: 600, h: 1301, label: '主屏小组件' },
+    { name: 'shot-5', w: 600, h: 1301, label: '锁屏实时活动 · 灵动岛' },
+    { name: 'shot-6', w: 600, h: 1301, label: 'Feedback · 用户反馈' },
+    { name: 'hero',       w: 680, h: 742, label: 'Hero line art', lineart: true },
+    { name: 'hero-white', w: 680, h: 742, label: 'Hero line art', lineart: true, white: true }
+  ]
+};
+
+const ITEMS = BY_RELEASE[RELEASE];
+if (!ITEMS) {
+  console.error(`No placeholder slots defined for ${RELEASE}`);
+  process.exit(2);
+}
 
 /** `--only shot-2` regenerates a single slot without clobbering real assets. */
 const only = process.argv.includes('--only')
@@ -48,7 +71,7 @@ for (const it of targets) {
     // the dark-mode invert(1) treatment is genuinely exercised by the sweep.
     const c = it.w / 2;
     svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${it.w}" height="${it.h}">
-      <g fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <g fill="none" stroke="${it.white ? '#FFFFFF' : '#000000'}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M${c} ${c * 0.35}c${c * 0.28} ${c * 0.3} ${c * 0.28} ${c * 0.72} 0 ${c * 1.0}
                  c-${c * 0.28}-${c * 0.28}-${c * 0.28}-${c * 0.7} 0-${c * 1.0}z"/>
         <circle cx="${c}" cy="${c * 0.75}" r="${c * 0.16}"/>
@@ -56,7 +79,7 @@ for (const it of targets) {
         <path d="M${c * 1.28} ${c * 1.12}l${c * 0.22} ${c * 0.26}-${c * 0.3}-.04"/>
         <path d="M${c} ${c * 1.42}v${c * 0.3}"/>
       </g>
-      <text x="50%" y="${c * 1.85}" text-anchor="middle" fill="#000000"
+      <text x="50%" y="${c * 1.85}" text-anchor="middle" fill="${it.white ? '#FFFFFF' : '#000000'}"
             font-family="sans-serif" font-size="${fs_}" font-weight="600">PLACEHOLDER</text>
     </svg>`;
   } else {

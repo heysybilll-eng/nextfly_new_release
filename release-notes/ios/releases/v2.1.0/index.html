@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- The design ships as `auto`: the page follows the OS. Declaring both schemes
+     is what stops WebKit from applying its own auto-darkening on top of ours. -->
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
+<title>What's New</title>
+<style>
+/* ============================================================================
+   RESET
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, h1, h2, p, div, button { margin: 0; padding: 0; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+/* ============================================================================
+   TOKENS  —  ported verbatim from the design handoff
+   ---------------------------------------------------------------------------
+   Light is the base. Dark is applied two ways: by OS preference (production
+   behaviour) and by an explicit data-scheme attribute (QA override only).
+   Every colour on this page resolves through one of these.
+   ========================================================================== */
+:root {
+  color-scheme: light dark;
+
+  --surface-bg:        #FFFFFF;
+  --surface-elevated:  #F7F7F9;
+  --surface-card:      #F2F2F7;
+  --border-hairline:   #E3E3E8;
+  --text-primary:      #16161A;
+  --text-secondary:    #6E6E73;
+  --text-tertiary:     #AEAEB2;
+  --cta-inverse-fill:  #16161A;
+  --cta-inverse-text:  #FFFFFF;
+
+  --accent-primary:    #3E6AE1;
+  --marker-gold:       #D9A441;
+
+  /* The hero illustration is a theme token, not a filter. A purpose-drawn
+     white version ships alongside the black one, so it swaps like any other
+     colour and only the applicable file is ever downloaded. */
+  --hero-art: url("assets/hero.png");
+
+  /* SF Pro / SF Pro Rounded are the real iOS system faces. The design
+     prototype substituted MiSans only because SF Pro is not licensable there;
+     on device these resolve to the genuine system fonts. `ui-rounded` is how
+     Safari exposes SF Pro Rounded. Non-Latin scripts fall through to the
+     platform faces (PingFang, Hiragino, Apple SD Gothic Neo, Devanagari
+     Sangam MN) via -apple-system. */
+  --family-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                 "Noto Sans", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
+                 "Noto Sans Devanagari", sans-serif;
+  --family-display: ui-rounded, "SF Pro Rounded", -apple-system,
+                    BlinkMacSystemFont, system-ui, var(--family-body);
+
+  --page-max: 480px;
+  --gutter: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme="light"]) {
+    --surface-bg:       #000000;
+    --surface-elevated: #1C1C1E;
+    --surface-card:     #232326;
+    --border-hairline:  #2C2C2E;
+    --text-primary:     #FFFFFF;
+    --text-secondary:   #8E8E93;
+    --text-tertiary:    #636366;
+    --cta-inverse-fill: #FFFFFF;
+    --cta-inverse-text: #000000;
+    --hero-art: url("assets/hero-white.png");
+  }
+}
+:root[data-scheme="dark"] {
+  --surface-bg:       #000000;
+  --surface-elevated: #1C1C1E;
+  --surface-card:     #232326;
+  --border-hairline:  #2C2C2E;
+  --text-primary:     #FFFFFF;
+  --text-secondary:   #8E8E93;
+  --text-tertiary:    #636366;
+  --cta-inverse-fill: #FFFFFF;
+  --cta-inverse-text: #000000;
+  --hero-art: url("assets/hero-white.png");
+}
+
+/* ============================================================================
+   BASE + WEBVIEW HARDENING
+   ========================================================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: none;
+}
+.f__body, .parity__body, .feedback { -webkit-user-select: text; user-select: text; }
+
+/* ============================================================================
+   HEADER  —  sticky, no bottom border
+   ========================================================================== */
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface-bg);
+}
+/* The top inset is NOT applied by default. The design has the host own
+   dismissal, which means the host supplies its own nav bar and has already
+   consumed the status bar. Adding env(safe-area-inset-top) on top of that
+   inserts a second status-bar-sized gap — and on Android the value is measured
+   against the window, so it stays non-zero even though the WebView starts
+   below the native bar. Hosts that present the page edge-to-edge opt in with
+   ?fullbleed=1. */
+:root[data-fullbleed] .hdr { padding-top: env(safe-area-inset-top, 0px); }
+
+/* ?header=0 — the host's nav bar already shows the title, so drop ours and
+   keep only the language control. */
+:root[data-noheader] .hdr__title { display: none; }
+:root[data-noheader] .langbtn { margin-left: auto; }
+.hdr__in {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hdr__title {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.langbtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: none;
+  transition: filter 150ms, transform 60ms;
+}
+.langbtn:active { transform: scale(0.97); }
+@media (hover: hover) { .langbtn:hover { filter: brightness(1.15); } }
+
+/* ============================================================================
+   BODY COLUMN
+   ========================================================================== */
+.body {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 56px;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* -- hero ------------------------------------------------------------------ */
+.hero { display: flex; flex-direction: column; gap: 12px; }
+.hero-art {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 8px;
+  aspect-ratio: 680 / 742;
+  background: var(--hero-art) center / contain no-repeat;
+}
+
+.hero__heading {
+  font-family: var(--family-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 8px;
+}
+.hero__intro {
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- section label --------------------------------------------------------- */
+.seclabel { display: flex; flex-direction: column; gap: 12px; }
+.seclabel__text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+/* The only hairline rule on the page. */
+.seclabel__rule { height: 1px; background: var(--border-hairline); }
+
+/* -- feature blocks -------------------------------------------------------- */
+.f { display: flex; flex-direction: column; gap: 10px; }
+.f__title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+.f__body {
+  font-size: 17px;
+  line-height: 1.7;     /* blocks with highlighted phrases need the room */
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.f--plain .f__body { line-height: 1.45; }   /* block 5 carries no highlights */
+
+/* Hand-drawn marker underline, exactly as specified in the handoff. */
+.mark {
+  color: var(--text-primary);
+  font-weight: 600;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20200%2014%27%20preserveAspectRatio=%27none%27%3E%3Cpath%20d=%27M4%2010c30-5%2058%202%2086-2s62-2%20106%203%27%20stroke=%27%23D9A441%27%20stroke-width=%275%27%20stroke-linecap=%27round%27%20fill=%27none%27%20opacity=%27.8%27/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 9px;
+  padding-bottom: 3px;
+}
+
+/* -- screenshot panel ------------------------------------------------------ */
+.shot {
+  margin-top: 6px;
+  border-radius: 16px;
+  background: var(--surface-elevated);
+  padding: 22px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+/* <picture> is display:inline and would otherwise become the flex item,
+   leaving the img unsized. display:contents makes the img the direct child so
+   all sizing below applies to it. */
+.shot picture { display: contents; }
+.shot img {
+  width: 66%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-hairline);
+}
+
+/* -- parity card ----------------------------------------------------------- */
+.parity {
+  border-radius: 16px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.parity__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-primary);
+}
+.parity__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.parity__body {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- feedback -------------------------------------------------------------- */
+.feedback {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  text-wrap: pretty;
+}
+
+/* ============================================================================
+   LANGUAGE SHEET
+   ========================================================================== */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: scrim-in 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sheet[hidden] { display: none; }
+.sheet__panel {
+  width: 100%;
+  max-width: var(--page-max);
+  background: var(--surface-elevated);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 18px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  max-height: 76vh;
+  overflow-y: auto;
+  animation: sheet-up 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet__grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-hairline);
+  margin: 0 auto 14px;
+}
+.sheet__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding-bottom: 8px;
+}
+.sheet__list { display: flex; flex-direction: column; }
+.sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 2px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 150ms, transform 60ms;
+}
+.sheet__row:active { transform: scale(0.99); }
+@media (hover: hover) { .sheet__row:hover { filter: brightness(1.15); } }
+.sheet__check { display: none; color: var(--accent-primary); }
+.sheet__row[aria-selected="true"] .sheet__check { display: flex; }
+
+body.sheet-open { overflow: hidden; }
+
+/* ============================================================================
+   LOCALE TYPOGRAPHY
+   ---------------------------------------------------------------------------
+   The design specifies one Latin-tuned treatment. Two adjustments are applied
+   on top of it because the design's values clip or crowd non-Latin scripts —
+   both are corrections needed to render the specified design faithfully, not
+   restyling.
+   ========================================================================== */
+
+/* Devanagari matras and conjuncts extend past the Latin em box; feature titles
+   at line-height 1.2 clip them. */
+:lang(hi) .f__title { line-height: 1.45; }
+:lang(hi) .hdr__title, :lang(hi) .sheet__title, :lang(hi) .parity__title { line-height: 1.4; }
+
+/* Negative tracking is tuned for Latin and visibly crowds CJK. Kinsoku
+   line-breaking also needs word-break left alone. */
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__title, .hdr__title, .parity__title, .sheet__title) {
+  letter-spacing: 0;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__body, .parity__body, .hero__intro, .feedback) {
+  word-break: normal;
+  line-break: strict;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) .f__title { line-height: 1.35; }
+
+/* Long German compounds and Russian tokens must never widen the page. */
+.f__title, .hero__heading, .parity__title { overflow-wrap: anywhere; }
+
+/* ============================================================================
+   NARROW SCREENS  (iPhone SE / mini, 320-359pt)
+   ---------------------------------------------------------------------------
+   Not from the design, which specifies a single type scale. At 320px that
+   scale runs the hero heading to the edge and breaks the intro onto three
+   lines. Only the two display sizes and the gutter step down; body copy,
+   colour and spacing rhythm are untouched.
+   ========================================================================== */
+@media (max-width: 359px) {
+  :root { --gutter: 16px; }
+  .hero__heading { font-size: 28px; }
+  .f__title { font-size: 18px; }
+}
+
+/* ============================================================================
+   WIDE SCREENS  (600px and up)
+   ---------------------------------------------------------------------------
+   Also not from the design: in the app this is only ever a phone-width
+   WebView. This is a fallback for the URL being opened in a desktop browser
+   or a large iPad, where a bare 480px column stranded in empty space reads as
+   broken rather than deliberate. Nothing inside the column changes, so
+   rendering at phone widths is unaffected.
+   ========================================================================== */
+@media (min-width: 600px) {
+  body { background: var(--surface-elevated); }
+
+  .shell {
+    max-width: var(--page-max);
+    margin: 40px auto;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-hairline);
+    border-radius: 20px;
+  }
+
+  /* Sticky would slide the header out of the card's rounded top, and there is
+     no reach problem to solve on a pointer device. */
+  .hdr {
+    position: static;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  /* The safe-area insets are meaningless here and the card supplies the
+     breathing room the viewport padding was providing. */
+  .body { padding-bottom: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<header class="hdr">
+  <div class="hdr__in">
+    <div class="hdr__title" id="navTitle"></div>
+    <button type="button" class="langbtn" id="langBtn" aria-haspopup="dialog" aria-expanded="false">
+      <span id="langBadge"></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="body">
+
+  <div class="hero">
+    <div class="hero-art" role="img" aria-hidden="true"></div>
+    <h1 class="hero__heading" id="versionHeading"></h1>
+    <p class="hero__intro" id="intro"></p>
+  </div>
+
+  <div class="seclabel">
+    <div class="seclabel__text" id="sectionLabel"></div>
+    <div class="seclabel__rule"></div>
+  </div>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f1t"></h2>
+    <p class="f__body" data-t="f1b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-1.webp" type="image/webp"><img src="assets/shot-1.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f2t"></h2>
+    <p class="f__body" data-t="f2b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-2.webp" type="image/webp"><img src="assets/shot-2.png" alt="" width="590" height="1278" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f3t"></h2>
+    <p class="f__body" data-t="f3b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-3.webp" type="image/webp"><img src="assets/shot-3.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f4t"></h2>
+    <p class="f__body" data-t="f4b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-4.webp" type="image/webp"><img src="assets/shot-4.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f5t"></h2>
+    <p class="f__body" data-t="f5b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-5.webp" type="image/webp"><img src="assets/shot-5.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f f--plain">
+    <h2 class="f__title" data-t="f6t"></h2>
+    <p class="f__body" data-t="f6b"></p>
+    <div class="shot"><picture><source srcset="assets/shot-6.webp" type="image/webp"><img src="assets/shot-6.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <div class="parity">
+    <div class="parity__row">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      <div class="parity__title" data-t="parityTitle"></div>
+    </div>
+    <p class="parity__body" data-t="parityBody"></p>
+  </div>
+
+  <p class="feedback" data-t="feedback"></p>
+
+</main>
+
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet__panel" id="sheetPanel">
+    <div class="sheet__grabber"></div>
+    <div class="sheet__title" id="sheetTitle"></div>
+    <div class="sheet__list" id="sheetList"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CODES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-TW', 'id', 'hi', 'ru'];
+
+  var BADGES = {
+    en: 'EN', fr: 'FR', de: 'DE', it: 'IT', es: 'ES', ja: 'JA',
+    ko: 'KO', 'zh-TW': '中文', id: 'ID', hi: 'HI', ru: 'RU'
+  };
+
+  /* ==========================================================================
+     COPY
+     --------------------------------------------------------------------------
+     Final strings, ported verbatim from the design handoff.
+     [[...]] marks a phrase that carries the gold marker underline. The handoff
+     recommends an explicit markup token over substring matching, so the marks
+     are baked into each locale's own string. This also removes a defect in the
+     prototype, where F1_MARK was keyed "zh" while STRINGS was keyed "zh-TW",
+     so Traditional Chinese silently lost its feature-1 highlight.
+     ======================================================================== */
+  var STRINGS = {
+    "en": {
+      "navTitle": "What's New",
+      "langName": "English",
+      "intro": "Here's what's new in this release.",
+      "sectionLabel": "NEW & IMPROVED",
+      "f1t": "Follow roles",
+      "f1b": "When you follow someone else's flight, mark [[who it's for]] — Pick-up or Drop-off, with a name and colour. Reminders now say who they're about.",
+      "f2t": "Filter by person",
+      "f2b": "My trips has a new filter bar. Tap a face to see [[just that person's flights]], or switch between your own and everyone else's.",
+      "f3t": "A keyboard for flight numbers",
+      "f3b": "Numbers and letters on [[one screen]] — no more switching layouts halfway through a flight number.",
+      "f4t": "Home Screen widget",
+      "f4b": "Put your next flight on the Home Screen. Arrival time, terminal and [[baggage belt]] at a glance.",
+      "f5t": "A cleaner Live Activity",
+      "f5b": "The Lock Screen and Dynamic Island layouts have been reworked — [[time remaining]], route and status sit where you expect them.",
+      "f6t": "A better way to reach us",
+      "f6b": "A new Feedback entry under Settings sorts your message by topic, so it gets to the right person sooner.",
+      "parityTitle": "Plus a round of fixes",
+      "parityBody": "Trip times now calculate correctly across the list, history and search views. The trip counter reads more clearly, and the launch screen is sharper.",
+      "feedback": "Questions or ideas? Reach out — we read every message.",
+      "langSheetTitle": "Language"
+    },
+    "fr": {
+      "navTitle": "Nouveautés",
+      "langName": "Français",
+      "intro": "Voici les nouveautés de cette version.",
+      "sectionLabel": "NOUVEAUTÉS ET AMÉLIORATIONS",
+      "f1t": "Rôles de suivi",
+      "f1b": "Quand vous suivez le vol de quelqu'un d'autre, indiquez [[pour qui c'est]] — arrivée ou départ, avec un nom et une couleur. Les rappels précisent désormais de qui il s'agit.",
+      "f2t": "Filtrer par personne",
+      "f2b": "Mes voyages accueille une barre de filtres. Touchez un visage pour ne voir que [[les vols de cette personne]], ou basculez entre les vôtres et ceux des autres.",
+      "f3t": "Un clavier pour les numéros de vol",
+      "f3b": "Chiffres et lettres sur [[un seul écran]] — fini les changements de clavier au milieu d'un numéro de vol.",
+      "f4t": "Widget sur l'écran d'accueil",
+      "f4b": "Placez votre prochain vol sur l'écran d'accueil : heure d'arrivée, terminal et [[tapis à bagages]] en un coup d'œil.",
+      "f5t": "Une activité en direct plus claire",
+      "f5b": "L'écran verrouillé et la Dynamic Island ont été revus — [[temps restant]], trajet et statut là où vous les attendez.",
+      "f6t": "Nous joindre plus facilement",
+      "f6b": "Une nouvelle entrée Commentaires dans les Réglages trie votre message par sujet, pour qu'il arrive plus vite à la bonne personne.",
+      "parityTitle": "Et une série de corrections",
+      "parityBody": "Les horaires se calculent désormais correctement dans la liste, l'historique et les résultats de recherche. Le compteur de voyages est plus lisible et l'écran de lancement plus net.",
+      "feedback": "Des questions ou des idées ? Écrivez-nous, nous lisons chaque message.",
+      "langSheetTitle": "Langue"
+    },
+    "de": {
+      "navTitle": "Neuerungen",
+      "langName": "Deutsch",
+      "intro": "Das ist neu in dieser Version.",
+      "sectionLabel": "NEU UND VERBESSERT",
+      "f1t": "Rollen beim Folgen",
+      "f1b": "Wenn du dem Flug einer anderen Person folgst, halte fest, [[für wen das ist]] – Abholen oder Bringen, mit Name und Farbe. Erinnerungen sagen jetzt, um wen es geht.",
+      "f2t": "Nach Person filtern",
+      "f2b": "Meine Reisen hat eine neue Filterleiste. Tippe auf ein Gesicht, um [[nur die Flüge dieser Person]] zu sehen, oder wechsle zwischen deinen und fremden Flügen.",
+      "f3t": "Eine Tastatur für Flugnummern",
+      "f3b": "Zahlen und Buchstaben auf [[einem Bildschirm]] – kein Umschalten mehr mitten in der Flugnummer.",
+      "f4t": "Widget für den Home-Bildschirm",
+      "f4b": "Leg deinen nächsten Flug auf den Home-Bildschirm: Ankunftszeit, Terminal und [[Gepäckband]] auf einen Blick.",
+      "f5t": "Aufgeräumte Live-Aktivität",
+      "f5b": "Sperrbildschirm und Dynamic Island wurden überarbeitet – [[verbleibende Zeit]], Strecke und Status sitzen dort, wo du sie erwartest.",
+      "f6t": "Einfacher Kontakt zu uns",
+      "f6b": "Ein neuer Feedback-Eintrag in den Einstellungen sortiert deine Nachricht nach Thema, damit sie schneller bei der richtigen Person landet.",
+      "parityTitle": "Dazu eine Runde Fehlerbehebungen",
+      "parityBody": "Reisezeiten werden jetzt in Liste, Verlauf und Suche korrekt berechnet. Der Reisezähler ist klarer lesbar und der Startbildschirm schärfer.",
+      "feedback": "Fragen oder Ideen? Schreib uns – wir lesen jede Nachricht.",
+      "langSheetTitle": "Sprache"
+    },
+    "it": {
+      "navTitle": "Novità",
+      "langName": "Italiano",
+      "intro": "Ecco le novità di questa versione.",
+      "sectionLabel": "NOVITÀ E MIGLIORAMENTI",
+      "f1t": "Ruoli di monitoraggio",
+      "f1b": "Quando segui il volo di qualcun altro, indica [[per chi è]] — ritiro o accompagnamento, con nome e colore. I promemoria ora dicono di chi si tratta.",
+      "f2t": "Filtra per persona",
+      "f2b": "I miei viaggi ha una nuova barra dei filtri. Tocca un volto per vedere [[solo i voli di quella persona]], o passa dai tuoi a quelli degli altri.",
+      "f3t": "Una tastiera per i numeri di volo",
+      "f3b": "Numeri e lettere su [[un solo schermo]]: niente più cambi di tastiera a metà di un numero di volo.",
+      "f4t": "Widget nella schermata Home",
+      "f4b": "Metti il prossimo volo nella schermata Home: orario di arrivo, terminal e [[nastro bagagli]] a colpo d'occhio.",
+      "f5t": "Attività in tempo reale più pulita",
+      "f5b": "Schermata di blocco e Dynamic Island sono state ridisegnate: [[tempo rimanente]], tratta e stato dove te li aspetti.",
+      "f6t": "Contattarci è più semplice",
+      "f6b": "Una nuova voce Feedback nelle Impostazioni ordina il messaggio per argomento, così arriva prima alla persona giusta.",
+      "parityTitle": "Più una serie di correzioni",
+      "parityBody": "Gli orari ora si calcolano correttamente in elenco, cronologia e risultati di ricerca. Il contatore dei viaggi è più chiaro e la schermata di avvio più nitida.",
+      "feedback": "Domande o idee? Scrivici: leggiamo ogni messaggio.",
+      "langSheetTitle": "Lingua"
+    },
+    "es": {
+      "navTitle": "Novedades",
+      "langName": "Español",
+      "intro": "Esto es lo nuevo en esta versión.",
+      "sectionLabel": "NUEVO Y MEJORADO",
+      "f1t": "Roles de seguimiento",
+      "f1b": "Cuando sigas el vuelo de otra persona, indica [[para quién es]]: recogida o acompañamiento, con nombre y color. Los avisos ahora dicen de quién se trata.",
+      "f2t": "Filtrar por persona",
+      "f2b": "Mis viajes estrena barra de filtros. Toca una cara para ver [[solo los vuelos de esa persona]], o alterna entre los tuyos y los de los demás.",
+      "f3t": "Un teclado para números de vuelo",
+      "f3b": "Números y letras en [[una sola pantalla]]: se acabó cambiar de teclado a mitad de un número de vuelo.",
+      "f4t": "Widget en la pantalla de inicio",
+      "f4b": "Pon tu próximo vuelo en la pantalla de inicio: hora de llegada, terminal y [[cinta de equipajes]] de un vistazo.",
+      "f5t": "Actividad en vivo más limpia",
+      "f5b": "La pantalla bloqueada y la Dynamic Island se han rediseñado: [[tiempo restante]], ruta y estado donde los esperas.",
+      "f6t": "Más fácil contactarnos",
+      "f6b": "Una nueva entrada de Comentarios en Ajustes ordena tu mensaje por tema, para que llegue antes a la persona adecuada.",
+      "parityTitle": "Además, una tanda de correcciones",
+      "parityBody": "Los horarios ya se calculan bien en la lista, el historial y los resultados de búsqueda. El contador de viajes se lee mejor y la pantalla de inicio es más nítida.",
+      "feedback": "¿Preguntas o ideas? Escríbenos: leemos todos los mensajes.",
+      "langSheetTitle": "Idioma"
+    },
+    "ja": {
+      "navTitle": "新機能",
+      "langName": "日本語",
+      "intro": "このバージョンの新しい内容をご紹介します。",
+      "sectionLabel": "新機能と改善",
+      "f1t": "フォロー時の役割",
+      "f1b": "他の人のフライトをフォローするとき、[[誰のためのフライトか]]を指定できます。お迎えかお見送りか、名前と色つきで。通知にも相手の名前が入ります。",
+      "f2t": "人でしぼり込む",
+      "f2b": "「マイトリップ」にフィルターバーが加わりました。アイコンをタップすれば[[その人のフライトだけ]]を表示、自分と他の人の切り替えもできます。",
+      "f3t": "便名入力のためのキーボード",
+      "f3b": "数字と英字が[[ひとつの画面]]に。便名の入力途中でキーボードを切り替える必要はもうありません。",
+      "f4t": "ホーム画面ウィジェット",
+      "f4b": "次のフライトをホーム画面に。到着時刻、ターミナル、[[手荷物受取ベルト]]がひと目で分かります。",
+      "f5t": "すっきりしたライブアクティビティ",
+      "f5b": "ロック画面とダイナミックアイランドの表示を作り直しました。[[残り時間]]、区間、ステータスが分かりやすい位置に並びます。",
+      "f6t": "お問い合わせがより簡単に",
+      "f6b": "「設定」に「フィードバック」が追加され、内容を種類ごとに振り分けます。担当者により早く届きます。",
+      "parityTitle": "そのほかの修正",
+      "parityBody": "一覧・履歴・検索結果でのフライト時刻の計算を修正しました。行程件数の表示を分かりやすくし、起動画面も鮮明になりました。",
+      "feedback": "ご質問やご提案はお気軽にお寄せください。すべて拝見しています。",
+      "langSheetTitle": "言語"
+    },
+    "ko": {
+      "navTitle": "새로운 기능",
+      "langName": "한국어",
+      "intro": "이번 버전의 새로운 내용입니다.",
+      "sectionLabel": "새로운 기능 및 개선",
+      "f1t": "팔로우 역할",
+      "f1b": "다른 사람의 항공편을 팔로우할 때 [[누구를 위한 것인지]] 지정할 수 있습니다. 마중인지 배웅인지, 이름과 색상까지. 알림에도 상대의 이름이 표시됩니다.",
+      "f2t": "사람별로 보기",
+      "f2b": "내 여행에 필터 바가 생겼습니다. 프로필을 누르면 [[그 사람의 항공편만]] 볼 수 있고, 내 항공편과 다른 사람의 항공편을 오갈 수도 있습니다.",
+      "f3t": "편명 전용 키보드",
+      "f3b": "숫자와 알파벳이 [[한 화면에]]. 편명을 입력하다가 자판을 바꿀 필요가 없습니다.",
+      "f4t": "홈 화면 위젯",
+      "f4b": "다음 항공편을 홈 화면에. 도착 시각, 터미널, [[수하물 수취대]]를 한눈에 확인하세요.",
+      "f5t": "깔끔해진 라이브 액티비티",
+      "f5b": "잠금 화면과 다이내믹 아일랜드 레이아웃을 다시 만들었습니다. [[남은 시간]], 구간, 상태가 있어야 할 자리에 놓였습니다.",
+      "f6t": "더 쉬워진 문의",
+      "f6b": "설정에 피드백 항목이 추가되어 문의를 주제별로 분류합니다. 담당자에게 더 빨리 전달됩니다.",
+      "parityTitle": "그 밖의 수정 사항",
+      "parityBody": "목록, 기록, 검색 결과에서 여행 시간이 올바르게 계산됩니다. 여행 개수 표시가 명확해졌고 시작 화면도 선명해졌습니다.",
+      "feedback": "질문이나 아이디어가 있으면 알려주세요. 모든 메시지를 읽고 있습니다.",
+      "langSheetTitle": "언어"
+    },
+    "zh-TW": {
+      "navTitle": "更新內容",
+      "langName": "繁體中文",
+      "intro": "以下是這個版本的更新內容。",
+      "sectionLabel": "新增與改進",
+      "f1t": "關注角色",
+      "f1b": "關注別人的航班時，可以標註[[這是要接誰、送誰]]，加上名字與顏色。提醒訊息也會直接寫明是誰的航班。",
+      "f2t": "依人篩選",
+      "f2b": "「我的行程」新增篩選列。點一下頭像就只看[[那個人的航班]]，也能在自己的與他人的航班之間切換。",
+      "f3t": "為班號設計的鍵盤",
+      "f3b": "數字與字母在[[同一個畫面]]，輸入班號時不必再切換鍵盤。",
+      "f4t": "主畫面小工具",
+      "f4b": "把下一趟航班放到主畫面，抵達時間、航廈與[[行李轉盤]]一眼就看得到。",
+      "f5t": "更清爽的即時動態",
+      "f5b": "重新調整了鎖定畫面與動態島的版面，[[剩餘時間]]、航段與狀態都在你預期的位置。",
+      "f6t": "更容易找到我們",
+      "f6b": "「設定」新增「意見回饋」，依主題分類你的訊息，能更快送到對的人手上。",
+      "parityTitle": "還有一批修正",
+      "parityBody": "行程列表、歷史紀錄與搜尋結果的時間換算已修正。行程數量的文案更清楚，啟動畫面也更清晰。",
+      "feedback": "有任何問題或建議，歡迎告訴我們，每一則訊息我們都會閱讀。",
+      "langSheetTitle": "語言"
+    },
+    "id": {
+      "navTitle": "Yang Baru",
+      "langName": "Bahasa Indonesia",
+      "intro": "Berikut yang baru di versi ini.",
+      "sectionLabel": "BARU & DITINGKATKAN",
+      "f1t": "Peran saat mengikuti",
+      "f1b": "Saat mengikuti penerbangan orang lain, tandai [[untuk siapa penerbangan itu]] — menjemput atau mengantar, lengkap dengan nama dan warna. Pengingat kini menyebutkan siapa yang dimaksud.",
+      "f2t": "Saring per orang",
+      "f2b": "Perjalanan saya punya bilah filter baru. Ketuk satu wajah untuk melihat [[penerbangan orang itu saja]], atau beralih antara milikmu dan milik orang lain.",
+      "f3t": "Papan ketik untuk nomor penerbangan",
+      "f3b": "Angka dan huruf dalam [[satu layar]] — tak perlu lagi berganti papan ketik di tengah nomor penerbangan.",
+      "f4t": "Widget Layar Utama",
+      "f4b": "Taruh penerbangan berikutnya di Layar Utama: waktu tiba, terminal, dan [[ban berjalan bagasi]] dalam sekali lihat.",
+      "f5t": "Live Activity yang lebih rapi",
+      "f5b": "Tampilan Layar Terkunci dan Dynamic Island dirombak — [[sisa waktu]], rute, dan status berada di tempat yang kamu harapkan.",
+      "f6t": "Lebih mudah menghubungi kami",
+      "f6b": "Entri Masukan baru di Pengaturan memilah pesanmu berdasarkan topik, agar cepat sampai ke orang yang tepat.",
+      "parityTitle": "Plus sejumlah perbaikan",
+      "parityBody": "Waktu perjalanan kini dihitung dengan benar di daftar, riwayat, dan hasil pencarian. Penghitung perjalanan lebih mudah dibaca dan layar peluncuran lebih tajam.",
+      "feedback": "Ada pertanyaan atau ide? Hubungi kami — setiap pesan kami baca.",
+      "langSheetTitle": "Bahasa"
+    },
+    "hi": {
+      "navTitle": "नया क्या है",
+      "langName": "हिन्दी",
+      "intro": "इस वर्शन में ये नया है।",
+      "sectionLabel": "नया और बेहतर",
+      "f1t": "फ़ॉलो की भूमिकाएँ",
+      "f1b": "किसी और की उड़ान फ़ॉलो करते समय बताएँ कि [[यह किसके लिए है]] — लेने जाना है या छोड़ने, नाम और रंग के साथ। अब रिमाइंडर में भी नाम दिखता है।",
+      "f2t": "व्यक्ति से छाँटें",
+      "f2b": "मेरी यात्राएँ में नई फ़िल्टर बार आई है। किसी चेहरे पर टैप करें और [[सिर्फ़ उसी की उड़ानें]] देखें, या अपनी और दूसरों की उड़ानों के बीच स्विच करें।",
+      "f3t": "उड़ान नंबर के लिए कीबोर्ड",
+      "f3b": "अंक और अक्षर [[एक ही स्क्रीन पर]] — उड़ान नंबर लिखते समय बीच में कीबोर्ड बदलने की ज़रूरत नहीं।",
+      "f4t": "होम स्क्रीन विजेट",
+      "f4b": "अगली उड़ान को होम स्क्रीन पर रखें। पहुँचने का समय, टर्मिनल और [[बैगेज बेल्ट]] एक नज़र में।",
+      "f5t": "साफ़-सुथरी लाइव ऐक्टिविटी",
+      "f5b": "लॉक स्क्रीन और डायनामिक आइलैंड का लेआउट नए सिरे से बनाया गया है — [[बचा हुआ समय]], रूट और स्थिति वहीं दिखते हैं जहाँ आप उम्मीद करते हैं।",
+      "f6t": "हम तक पहुँचना आसान",
+      "f6b": "सेटिंग्स में नया फ़ीडबैक विकल्प आपके संदेश को विषय के हिसाब से छाँटता है, ताकि वह सही व्यक्ति तक जल्दी पहुँचे।",
+      "parityTitle": "साथ ही कई सुधार",
+      "parityBody": "सूची, इतिहास और खोज परिणामों में यात्रा का समय अब सही गिना जाता है। यात्राओं की गिनती ज़्यादा साफ़ दिखती है और लॉन्च स्क्रीन भी बेहतर है।",
+      "feedback": "कोई सवाल या सुझाव? हमें बताएं — हम हर संदेश पढ़ते हैं।",
+      "langSheetTitle": "भाषा"
+    },
+    "ru": {
+      "navTitle": "Что нового",
+      "langName": "Русский",
+      "intro": "Вот что нового в этой версии.",
+      "sectionLabel": "НОВОЕ И УЛУЧШЕННОЕ",
+      "f1t": "Роли при отслеживании",
+      "f1b": "Отслеживая чужой рейс, укажите, [[для кого он]] — встреча или проводы, с именем и цветом. Напоминания теперь называют, о ком речь.",
+      "f2t": "Фильтр по человеку",
+      "f2b": "В «Моих поездках» появилась панель фильтров. Нажмите на аватар, чтобы увидеть [[только рейсы этого человека]], или переключайтесь между своими и чужими.",
+      "f3t": "Клавиатура для номеров рейсов",
+      "f3b": "Цифры и буквы на [[одном экране]] — больше не нужно переключать раскладку посреди номера рейса.",
+      "f4t": "Виджет на экране «Домой»",
+      "f4b": "Поместите ближайший рейс на экран «Домой»: время прилёта, терминал и [[лента выдачи багажа]] сразу перед глазами.",
+      "f5t": "Аккуратнее Live Activity",
+      "f5b": "Макеты для экрана блокировки и Dynamic Island переработаны — [[оставшееся время]], маршрут и статус на привычных местах.",
+      "f6t": "С нами проще связаться",
+      "f6b": "Новый раздел «Отзыв» в настройках сортирует сообщение по теме, чтобы оно быстрее дошло до нужного человека.",
+      "parityTitle": "И ещё ряд исправлений",
+      "parityBody": "Время поездок теперь считается верно в списке, истории и результатах поиска. Счётчик поездок читается яснее, а экран запуска стал чётче.",
+      "feedback": "Вопросы или идеи? Напишите нам — мы читаем каждое сообщение.",
+      "langSheetTitle": "Язык"
+    }
+  };
+
+  /* ==========================================================================
+     LANGUAGE RESOLUTION  —  order per the handoff:
+     manual pick > lang param > locale > hl > navigator.language > en
+     ======================================================================== */
+  function params() {
+    try { return new URLSearchParams(location.search); }
+    catch (e) { return { get: function () { return null; } }; }
+  }
+
+  function normalize(raw) {
+    if (!raw) return null;
+    var v = String(raw).trim();
+    if (!v) return null;
+    var lower = v.toLowerCase();
+    for (var i = 0; i < CODES.length; i++) {
+      if (CODES[i].toLowerCase() === lower) return CODES[i];
+    }
+    var base = lower.split(/[-_]/)[0];
+    if (base === 'zh') return 'zh-TW';
+    for (var j = 0; j < CODES.length; j++) {
+      if (CODES[j].toLowerCase().split('-')[0] === base) return CODES[j];
+    }
+    return null;
+  }
+
+  var picked = null;
+
+  function activeLang() {
+    var p = params();
+    return picked
+      || normalize(p.get('lang'))
+      || normalize(p.get('locale'))
+      || normalize(p.get('hl'))
+      || normalize(navigator.language)
+      || 'en';
+  }
+
+  /* ==========================================================================
+     MARKER HIGHLIGHT
+     --------------------------------------------------------------------------
+     Splits "plain [[marked]] plain" into text nodes and .mark spans. Built with
+     createTextNode rather than innerHTML so copy can never inject markup.
+     ======================================================================== */
+  function applyText(el, raw) {
+    el.textContent = '';
+    var parts = String(raw).split(/\[\[|\]\]/);
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2 === 1) {
+        var span = document.createElement('span');
+        span.className = 'mark';
+        span.appendChild(document.createTextNode(parts[i]));
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(parts[i]));
+      }
+    }
+  }
+
+  /* ==========================================================================
+     SHEET
+     ======================================================================== */
+  var sheet = document.getElementById('sheet');
+  var sheetList = document.getElementById('sheetList');
+  var langBtn = document.getElementById('langBtn');
+  var lastFocus = null;
+
+  function openSheet() {
+    lastFocus = document.activeElement;
+    sheet.hidden = false;
+    document.body.classList.add('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'true');
+    var active = sheetList.querySelector('[aria-selected="true"]');
+    if (active) active.focus();
+  }
+
+  function closeSheet() {
+    sheet.hidden = true;
+    document.body.classList.remove('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'false');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  langBtn.addEventListener('click', openSheet);
+  sheet.addEventListener('click', closeSheet);
+  document.getElementById('sheetPanel').addEventListener('click', function (e) {
+    e.stopPropagation();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !sheet.hidden) closeSheet();
+  });
+
+  function buildSheet(lang) {
+    sheetList.textContent = '';
+    CODES.forEach(function (code) {
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'sheet__row';
+      row.setAttribute('role', 'option');
+      row.setAttribute('aria-selected', String(code === lang));
+      row.lang = code;
+
+      var name = document.createElement('span');
+      name.textContent = STRINGS[code].langName;
+      row.appendChild(name);
+
+      var check = document.createElement('span');
+      check.className = 'sheet__check';
+      check.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
+        'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+      row.appendChild(check);
+
+      row.addEventListener('click', function () {
+        picked = code;
+        closeSheet();
+        render();
+      });
+      sheetList.appendChild(row);
+    });
+  }
+
+  /* ==========================================================================
+     RENDER
+     ======================================================================== */
+  function render() {
+    var lang = activeLang();
+    var t = STRINGS[lang] || STRINGS.en;
+    var p = params();
+
+    document.documentElement.lang = lang;
+    document.documentElement.dir = 'ltr';
+    document.title = t.navTitle;
+
+    document.getElementById('navTitle').textContent = t.navTitle;
+    document.getElementById('langBadge').textContent = BADGES[lang] || 'EN';
+    document.getElementById('intro').textContent = t.intro;
+    document.getElementById('sectionLabel').textContent = t.sectionLabel;
+    document.getElementById('sheetTitle').textContent = t.langSheetTitle;
+
+    /* Heading is `versionWord + " " + version`. Neither is localized in the
+       design — versionWord is a config input, not a STRINGS key. */
+    var version = p.get('v') || '2.1.0';
+    var versionWord = p.get('vw') || 'Version';
+    if (!/^[\w.\-]{1,24}$/.test(version)) version = '2.1.0';
+    document.getElementById('versionHeading').textContent = versionWord + ' ' + version;
+
+    var nodes = document.querySelectorAll('[data-t]');
+    for (var i = 0; i < nodes.length; i++) {
+      var key = nodes[i].getAttribute('data-t');
+      applyText(nodes[i], t[key] !== undefined ? t[key] : STRINGS.en[key]);
+    }
+
+    buildSheet(lang);
+  }
+
+  /* QA-only scheme override; production ships as auto (follows the OS). */
+  var theme = params().get('theme');
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-scheme', theme);
+  }
+
+  /* Presentation hints from the host. Neither is detectable from inside the
+     WebView, so the host has to say. */
+  if (params().get('fullbleed') === '1') {
+    document.documentElement.setAttribute('data-fullbleed', '');
+  }
+  if (params().get('header') === '0') {
+    document.documentElement.setAttribute('data-noheader', '');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();
+</script>
+
+</body>
+</html>

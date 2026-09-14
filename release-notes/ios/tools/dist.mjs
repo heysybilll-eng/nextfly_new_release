@@ -14,11 +14,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { ROOT, PAGE } from './_shared.mjs';
+import { ROOT, PAGE, VERSION } from './_shared.mjs';
 
 const run = promisify(execFile);
 
-const VERSION = '2.0.5';
 const NAME = `nextfly-release-notes-ios-v${VERSION}`;
 const DIST = path.join(ROOT, 'dist');
 const STAGE = path.join(DIST, NAME);

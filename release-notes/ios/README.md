@@ -1,12 +1,22 @@
-# iOS v2.0.5 "What's New" H5
+# iOS "What's New" H5
 
 In-app release-notes page for the Nextfly iOS WebView, built from the Claude Design handoff for `iOS Release Notes H5.dc.html`. Single scrolling column, 11 locales with an in-page language picker, follows the OS light/dark setting. No CTA and no close button — the host WebView owns dismissal.
 
 ```
 release-notes/ios/
-  index.html      the deliverable — inline CSS + JS + all 11 locales
-  assets/         images
-  tools/          dev-time gates; NOT part of the deployed output
+  releases/
+    v2.0.5/       index.html + assets/ + the shipped zip
+    v2.1.0/       ditto
+  tools/          shared gates; NOT part of the deployed output
+```
+
+One page per app release, one shared toolchain. Every tool targets the newest
+release directory by default; `--release v2.0.5` rebuilds an older one exactly
+as it shipped:
+
+```bash
+npm run check                        # newest release
+node tools/shot.mjs --release v2.0.5 --gate
 ```
 
 Deploy `index.html` + `assets/` to any static host. No fonts, scripts or stylesheets are fetched at runtime, so it renders fully offline once cached.

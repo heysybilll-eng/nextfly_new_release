@@ -1,10 +1,43 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fsSync from 'node:fs';
 
-export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PROJECT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const RELEASES = path.join(PROJECT, 'releases');
+
+/**
+ * One page per app release, sharing this toolchain. `--release v2.0.5` targets
+ * an older one; without it the newest directory wins, so day-to-day work needs
+ * no flag and an older release can still be rebuilt exactly as it shipped.
+ */
+function resolveRelease() {
+  const want = process.argv[process.argv.indexOf('--release') + 1];
+  const all = fsSync.readdirSync(RELEASES)
+    .filter(d => /^v\d+(\.\d+)*$/.test(d))
+    .sort((a, b) => {
+      const pa = a.slice(1).split('.').map(Number);
+      const pb = b.slice(1).split('.').map(Number);
+      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+      }
+      return 0;
+    });
+  if (!all.length) throw new Error(`No release directories under ${RELEASES}`);
+  if (process.argv.includes('--release')) {
+    if (!all.includes(want)) {
+      throw new Error(`Unknown release "${want}". Known: ${all.join(', ')}`);
+    }
+    return want;
+  }
+  return all[all.length - 1];
+}
+
+export const RELEASE = resolveRelease();
+export const VERSION = RELEASE.slice(1);
+export const ROOT = path.join(RELEASES, RELEASE);
 export const PAGE = path.join(ROOT, 'index.html');
 export const ASSETS = path.join(ROOT, 'assets');
-export const OUT = path.join(ROOT, '.out');
+export const OUT = path.join(PROJECT, '.out', RELEASE);
 
 /** Every locale the page ships. Keep in sync with CODES in index.html. */
 export const LOCALES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-TW', 'id', 'hi', 'ru'];

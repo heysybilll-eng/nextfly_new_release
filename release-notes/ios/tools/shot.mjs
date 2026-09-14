@@ -16,7 +16,12 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { LOCALES, VIEWPORTS, SCHEMES, OUT, CHROMIUM, argOf, hasFlag, pageUrl } from './_shared.mjs';
+import { LOCALES, VIEWPORTS, SCHEMES, OUT, CHROMIUM, argOf, hasFlag, pageUrl, RELEASE } from './_shared.mjs';
+
+const HERO = {
+  'v2.0.5': ['rocket-lineart.png', 'rocket-lineart-white.png'],
+  'v2.1.0': ['hero.png', 'hero-white.png']
+}[RELEASE];
 
 const ONE_LANG = argOf('--lang');
 const ONE_VP = argOf('--vp');
@@ -24,7 +29,7 @@ const ONE_SCHEME = argOf('--scheme');
 const GATE_ONLY = hasFlag('--gate');
 
 /** Feature bodies 1-4 carry marker-underlined phrases; block 5 does not. */
-const MARKED_KEYS = ['f1b', 'f2b', 'f3b', 'f4b'];
+const MARKED_KEYS = { 'v2.0.5': ['f1b','f2b','f3b','f4b'], 'v2.1.0': ['f1b','f2b','f3b','f4b','f5b'] }[RELEASE];
 
 const locales = ONE_LANG ? [ONE_LANG] : LOCALES;
 const schemes = ONE_SCHEME ? [ONE_SCHEME] : SCHEMES;
@@ -138,7 +143,7 @@ for (const scheme of schemes) {
       if (probe.leaked.length) problems.push(`unparsed [[ ]] in: ${probe.leaked.join(', ')}`);
       if (probe.missingMarks.length) problems.push(`no highlight spans in: ${probe.missingMarks.join(', ')}`);
       if (probe.brokenImages.length) problems.push(`broken images: ${probe.brokenImages.join(', ')}`);
-      const wantHero = scheme === 'dark' ? 'rocket-lineart-white.png' : 'rocket-lineart.png';
+      const wantHero = scheme === 'dark' ? HERO[1] : HERO[0];
       if (!probe.heroArt || probe.heroArt === 'none') problems.push('hero illustration has no background-image');
       else if (!probe.heroArt.includes(wantHero)) problems.push(`hero art is ${probe.heroArt}, expected ${wantHero}`);
       if (probe.rowsCount !== LOCALES.length) problems.push(`sheet has ${probe.rowsCount} rows, expected ${LOCALES.length}`);
