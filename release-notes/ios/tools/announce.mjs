@@ -97,8 +97,10 @@ const COPY = {
   zh: {
     headline: '七项更新',
     sub: '让接送机这件事，更省心一点',
-    features: ['关注角色', '按人筛选', '航班备注', '主屏幕小组件',
-               '灵动岛焕新', '航班号键盘', '意见反馈'],
+    groups: [
+      { label: '双端', items: ['关注角色', '按人筛选', '航班备注'] },
+      { label: '仅 iOS', items: ['主屏幕小组件', '灵动岛焕新', '航班号键盘', '意见反馈'] },
+    ],
     cta: {
       upcoming: { both: '即将上线', ios: '即将上线', android: '即将上线' },
       live: { both: 'iOS / Android 已上线', ios: 'App Store 已上线',
@@ -108,8 +110,11 @@ const COPY = {
   en: {
     headline: 'Seven things that are new',
     sub: 'Making airport runs a little easier',
-    features: ['Follow roles', 'Filter by person', 'Flight notes', 'Home Screen widget',
-               'Live Activity', 'Flight-number keyboard', 'In-app feedback'],
+    groups: [
+      { label: 'Both', items: ['Follow roles', 'Filter by person', 'Flight notes'] },
+      { label: 'iOS only', items: ['Home Screen widget', 'Live Activity',
+                                   'Flight-number keyboard', 'In-app feedback'] },
+    ],
     cta: {
       upcoming: { both: 'Coming soon', ios: 'Coming soon', android: 'Coming soon' },
       live: { both: 'Now on iOS & Android', ios: 'Now on the App Store',
@@ -132,10 +137,15 @@ if (!['both', 'ios', 'android'].includes(STORES)) {
   throw new Error(`--stores must be "both", "ios" or "android", got "${STORES}"`);
 }
 
-/* The three screens that stay recognisable at chat-thumbnail size: a role
-   sheet, a Home Screen, a Lock Screen. Detail is lost that small, but the
-   silhouettes still read as three different places in the app. */
-const SHOTS = ['shot-1.png', 'shot-5.png', 'shot-6.png'];
+/* Two of the three are features both platforms get, because an Android reader
+   should see something they can actually go and use. The Lock Screen earns its
+   place anyway: it is the only dark screen, and without it the trio is three
+   pale lists that blur together at thumbnail size. The platform rows above say
+   which is which.
+
+   This also keeps the Home Screen capture out of the card — it carries a
+   "NextFly(Beta)" widget label from a TestFlight build. */
+const SHOTS = ['shot-1.png', 'shot-3.png', 'shot-6.png'];
 
 const SIZES = [
   { name: 'square', w: 1080, h: 1080 },
@@ -161,7 +171,7 @@ function html({ copy, size, fonts, shots, hero, scheme }) {
      height budget converts straight into a width and the three phones cannot
      grow into the copy above them as the copy changes length. */
   const AR = 600 / 1301;
-  const midH = wide ? 360 : 545;
+  const midH = wide ? 330 : 498;
   const midW = Math.round(midH * AR);
   const sideW = Math.round(midW * 0.87);
 
@@ -208,11 +218,20 @@ body{
           margin-top:${wide ? 14 : 22}px; color:${c.primary};}
 .sub{font-size:${wide ? 19 : 26}px; font-weight:400; color:${c.secondary};
      margin-top:${wide ? 7 : 12}px;}
-/* All seven names in one run — the image gets forwarded without the post more
-   often than anyone plans for, and this is what lets it stand alone. */
+/* Every name, grouped by platform. The image gets forwarded without the post
+   more often than anyone plans for, so it has to stand alone — and standing
+   alone means an Android reader can tell at a glance which four of these are
+   not coming to their phone. */
+.row{display:flex; align-items:baseline; gap:${wide ? 10 : 14}px;
+     margin-top:${wide ? 12 : 20}px;}
+.tag{
+  flex:none; width:${wide ? 62 : 78}px; text-align:center;
+  font-size:${wide ? 13 : 16}px; font-weight:600; letter-spacing:.01em;
+  color:${c.tertiary}; border:1px solid ${c.hairline}; border-radius:999px;
+  padding:${wide ? '3px 0' : '4px 0'}; position:relative; top:${wide ? -1 : -2}px;
+}
 .feats{display:flex; flex-wrap:wrap; align-items:baseline;
-       margin-top:${wide ? 16 : 26}px; max-width:${wide ? 478 : 912}px;
-       row-gap:${wide ? 4 : 8}px;}
+       max-width:${wide ? 404 : 820}px; row-gap:${wide ? 4 : 8}px;}
 .feat{font-size:${wide ? 16 : 20}px; font-weight:500; color:${c.secondary};
       white-space:nowrap;}
 /* The separator sits inside the preceding item so a wrap can never put a
@@ -251,11 +270,14 @@ body{
   </div>
   <div class="headline">${copy.headline}</div>
   <div class="sub">${copy.sub}</div>
-  <div class="feats">${copy.features
+  ${copy.groups.map(g => `<div class="row">
+    <span class="tag">${g.label}</span>
+    <span class="feats">${g.items
       .map((f, i) => `<span class="feat">${f}` +
-                     (i < copy.features.length - 1 ? `<span class="dot">·</span>` : '') +
+                     (i < g.items.length - 1 ? `<span class="dot">·</span>` : '') +
                      `</span>`)
-      .join('')}</div>
+      .join('')}</span>
+  </div>`).join('')}
 </div>
 <div class="phones">
   <img class="phone side" src="${shots[0]}">
@@ -297,7 +319,7 @@ for (const [key, copy] of Object.entries(COPY)) {
         const W = window.innerWidth, H = window.innerHeight;
         const out = [];
         for (const el of document.querySelectorAll(
-              '.eyebrow,.ver,.headline,.sub,.feat,.cta,.phone')) {
+              '.eyebrow,.ver,.headline,.sub,.feat,.tag,.cta,.phone')) {
           const r = el.getBoundingClientRect();
           if (r.left < -0.5 || r.top < -0.5 || r.right > W + 0.5 || r.bottom > H + 0.5) {
             out.push(`${el.className.split(' ')[0]}:` +
@@ -311,7 +333,7 @@ for (const [key, copy] of Object.entries(COPY)) {
            a fault. */
         const hit = (a, b) => a.left < b.right && b.left < a.right &&
                               a.top < b.bottom && b.top < a.bottom;
-        const copyRects = [...document.querySelectorAll('.eyebrow,.ver,.cta,.headline,.sub,.feat')]
+        const copyRects = [...document.querySelectorAll('.eyebrow,.ver,.cta,.headline,.sub,.feat,.tag')]
           .map(e => e.getBoundingClientRect());
         for (const ph of document.querySelectorAll('.phone')) {
           const r = ph.getBoundingClientRect();
