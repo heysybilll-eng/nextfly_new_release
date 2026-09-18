@@ -7,3 +7,6 @@ index.standalone.html
 
 # built by tools/dist.mjs; the zip beside it is what ships
 dist/
+
+# fonts fetched once by tools/announce.mjs (~19 MB, redownloadable)
+.fonts/
