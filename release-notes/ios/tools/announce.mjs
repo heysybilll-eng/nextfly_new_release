@@ -22,7 +22,8 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { chromium } from 'playwright';
-import { ROOT, PAGE, OUT, VERSION, argOf } from './_shared.mjs';
+import sharp from 'sharp';
+import { ROOT, PAGE, OUT, VERSION, RELEASE, PICS, SOURCE_MAP, argOf } from './_shared.mjs';
 
 const run = promisify(execFile);
 const FONTDIR = path.join(path.dirname(new URL(import.meta.url).pathname), '..', '.fonts');
@@ -145,7 +146,52 @@ if (!['both', 'ios', 'android'].includes(STORES)) {
 
    This also keeps the Home Screen capture out of the card — it carries a
    "NextFly(Beta)" widget label from a TestFlight build. */
-const SHOTS = ['shot-1.png', 'shot-3.png', 'shot-6.png'];
+const SHOTS = ['shot-1', 'shot-3', 'shot-6'];
+
+/* Output scale. The card is sourced from the original captures rather than the
+   page's assets, which are deliberately capped at 600px for payload; at 2x or
+   3x those would be upscaled and soft. Each image is resized once, by sharp,
+   to exactly the pixels it will occupy — better than letting the browser do it
+   and it keeps the embedded payload proportionate. */
+const DPR = Number(argOf('--dpr', '1'));
+if (![1, 2, 3].includes(DPR)) {
+  throw new Error(`--dpr must be 1, 2 or 3, got "${argOf('--dpr')}"`);
+}
+
+/** shipped asset name -> original capture on disk. */
+const ORIGINAL = Object.fromEntries(
+  SOURCE_MAP[RELEASE].map(m => [m.to, path.join(PICS, m.from)]));
+
+const undersized = [];
+
+/**
+ * Resize an original to exactly the device pixels it will occupy. Anything the
+ * source cannot cover is recorded rather than silently upscaled — a soft hero
+ * on a 3x card is precisely the sort of thing nobody notices until it is
+ * printed.
+ */
+async function fitted(name, cssWidth) {
+  const file = ORIGINAL[name];
+  if (!file) throw new Error(`no original mapped for "${name}"`);
+  const need = Math.ceil(cssWidth * DPR);
+  const img = sharp(file);
+  const { width } = await img.metadata();
+  if (width < need) undersized.push({ name, have: width, need });
+  const buf = await img
+    .resize({ width: Math.min(need, width), withoutEnlargement: true })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
+/** Layout geometry, shared by the renderer and by image sizing. */
+function geom(sizeName) {
+  const wide = sizeName === 'wide';
+  const AR = 600 / 1301;              // the screenshots' aspect ratio
+  const midH = wide ? 330 : 498;      // height budget, so phones cannot grow
+  const midW = Math.round(midH * AR);
+  return { wide, midW, sideW: Math.round(midW * 0.87), heroW: wide ? 150 : 270 };
+}
 
 const SIZES = [
   { name: 'square', w: 1080, h: 1080 },
@@ -170,10 +216,7 @@ function html({ copy, size, fonts, shots, hero, scheme }) {
   /* Phone height is derived, not guessed. The screenshots are 600x1301, so a
      height budget converts straight into a width and the three phones cannot
      grow into the copy above them as the copy changes length. */
-  const AR = 600 / 1301;
-  const midH = wide ? 330 : 498;
-  const midW = Math.round(midH * AR);
-  const sideW = Math.round(midW * 0.87);
+  const { midW, sideW, heroW } = geom(size.name);
 
   return `<!doctype html><meta charset="utf-8"><style>
 ${fonts}
@@ -241,8 +284,7 @@ body{
    the page are visibly the same announcement. */
 .hero{
   position:absolute; z-index:1; pointer-events:none;
-  ${wide ? 'right:34px; top:30px; width:150px;'
-         : 'right:74px; top:86px; width:270px;'}
+  ${wide ? `right:34px; top:30px;` : `right:74px; top:86px;`} width:${heroW}px;
   opacity:${dark ? .92 : .86};
 }
 .phones{
@@ -290,8 +332,18 @@ body{
 /* ---- render -------------------------------------------------------------- */
 await ensureFonts();
 const fonts = await fontCss();
-const shots = await Promise.all(SHOTS.map(dataUri));
-const heroArt = { light: await dataUri('hero.png'), dark: await dataUri('hero-white.png') };
+/* Sized per layout, because the wide card draws everything smaller and there
+   is no reason to embed square-sized pixels in it. */
+const art = {};
+for (const size of SIZES) {
+  const { midW, sideW, heroW } = geom(size.name);
+  art[size.name] = {
+    shots: [await fitted(SHOTS[0], sideW),
+            await fitted(SHOTS[1], midW),
+            await fitted(SHOTS[2], sideW)],
+    hero: { light: await fitted('hero', heroW), dark: await fitted('hero-white', heroW) },
+  };
+}
 
 const onlyLocale = argOf('--locale');
 const onlyScheme = argOf('--scheme');
@@ -306,10 +358,11 @@ for (const [key, copy] of Object.entries(COPY)) {
     if (onlyScheme && scheme !== onlyScheme) continue;
     for (const size of SIZES) {
       const ctx = await browser.newContext({
-        viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1,
+        viewport: { width: size.w, height: size.h }, deviceScaleFactor: DPR,
       });
       const p = await ctx.newPage();
-      await p.setContent(html({ copy, size, fonts, shots, hero: heroArt[scheme], scheme }), { waitUntil: 'load' });
+      await p.setContent(html({ copy, size, fonts, shots: art[size.name].shots,
+                                hero: art[size.name].hero[scheme], scheme }), { waitUntil: 'load' });
       await p.evaluate(() => document.fonts.ready);
       /* The card is a fixed frame, so the frame clips everything — which means
          a layout that has gone wrong looks identical to one that is fine. The
@@ -345,7 +398,8 @@ for (const [key, copy] of Object.entries(COPY)) {
         throw new Error(`${key}/${scheme}/${size.name}: ${clipped.join('  ')}`);
       }
       const file = path.join(outDir,
-        `nextfly-${VERSION}-${key}-${STATE}-${STORES}-${scheme}-${size.name}.png`);
+        `nextfly-${VERSION}-${key}-${STATE}-${STORES}-${scheme}-${size.name}` +
+        `${DPR > 1 ? `@${DPR}x` : ''}.png`);
       await p.screenshot({ path: file });
       made.push(file);
       await ctx.close();
@@ -355,5 +409,25 @@ for (const [key, copy] of Object.entries(COPY)) {
 await browser.close();
 
 const kb = n => (n / 1024).toFixed(0) + ' KB';
-for (const f of made) console.log(`${path.basename(f).padEnd(42)} ${kb((await fs.stat(f)).size)}`);
-console.log(`\n${made.length} images in ${outDir}`);
+for (const f of made) {
+  const m = await sharp(f).metadata();
+  console.log(`${path.basename(f).padEnd(48)} ${String(m.width + 'x' + m.height).padStart(11)}` +
+              `  ${kb((await fs.stat(f)).size).padStart(8)}`);
+}
+console.log(`\n${made.length} images at ${DPR}x in ${outDir}`);
+
+/* Report rather than fail: a slightly soft hero is still a usable card, and
+   the fix is a re-export by someone else. Saying nothing is the only wrong
+   option. */
+if (undersized.length) {
+  const seen = new Map();
+  for (const u of undersized) {
+    const prev = seen.get(u.name);
+    if (!prev || u.need > prev.need) seen.set(u.name, u);
+  }
+  console.warn(`\n! source too small for ${DPR}x — these were not upscaled, ` +
+               `so they render smaller-than-crisp:`);
+  for (const u of seen.values()) {
+    console.warn(`    ${u.name.padEnd(12)} have ${u.have}px, need ${u.need}px`);
+  }
+}

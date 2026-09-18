@@ -14,7 +14,7 @@
 import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { ASSETS, argOf, RELEASE } from './_shared.mjs';
+import { ASSETS, argOf, RELEASE, SOURCE_MAP } from './_shared.mjs';
 
 const SRC = argOf('--src');
 if (!SRC) {
@@ -22,38 +22,7 @@ if (!SRC) {
   process.exit(2);
 }
 
-/**
- * design upload -> shipped asset + max rendered width in CSS px, per release.
- *
- * Screenshots render at 66% of the 400px panel content box (~264 CSS px), so
- * 600px covers 2x with headroom. The hero renders up to 340px.
- */
-const BY_RELEASE = {
-  'v2.0.5': [
-    // Not in filename order: 2.PNG and 3.PNG are the light and dark captures of
-    // the same Settings screen, feeding membership-expiry and Dark Mode.
-    { from: '1.PNG',                          to: 'shot-1',               maxCssWidth: 300 },
-    { from: 'Group 2.png',                    to: 'shot-2',               maxCssWidth: 300 },
-    { from: '3.PNG',                          to: 'shot-3',               maxCssWidth: 300 },
-    { from: '2.PNG',                          to: 'shot-4',               maxCssWidth: 300 },
-    { from: '4.PNG',                          to: 'shot-5',               maxCssWidth: 300 },
-    { from: 'rocket-lineart-even@2x.png',     to: 'rocket-lineart',       maxCssWidth: 340 },
-    { from: 'rocket-lineart-even-white@2x.png', to: 'rocket-lineart-white', maxCssWidth: 340 }
-  ],
-  'v2.0.6': [
-    { from: '他人航班关注.PNG',                  to: 'shot-1',     maxCssWidth: 300 },
-    { from: '行程筛选器.PNG',                    to: 'shot-2',     maxCssWidth: 300 },
-    { from: '备注.PNG',                         to: 'shot-3',     maxCssWidth: 300 },
-    { from: '自定义键盘.PNG',                    to: 'shot-4',     maxCssWidth: 300 },
-    { from: '小组件.PNG',                       to: 'shot-5',     maxCssWidth: 300 },
-    { from: '实时活动_new.PNG',                  to: 'shot-6',     maxCssWidth: 300 },
-    { from: '用户反馈页面.PNG',                  to: 'shot-7',     maxCssWidth: 300 },
-    { from: 'header.png',                     to: 'hero',       maxCssWidth: 340 },
-    { from: '0_3-white-line-transparent-4x.png', to: 'hero-white', maxCssWidth: 340 }
-  ]
-};
-
-const MAP = BY_RELEASE[RELEASE];
+const MAP = SOURCE_MAP[RELEASE];
 if (!MAP) {
   console.error(`No asset map defined for ${RELEASE}`);
   process.exit(2);
