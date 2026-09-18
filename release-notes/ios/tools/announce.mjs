@@ -99,14 +99,22 @@ const COPY = {
     sub: '让接送机这件事，更省心一点',
     features: ['关注角色', '按人筛选', '航班备注', '主屏幕小组件',
                '灵动岛焕新', '航班号键盘', '意见反馈'],
-    cta: { upcoming: '即将上线', live: 'App Store 已上线' },
+    cta: {
+      upcoming: { both: '即将上线', ios: '即将上线', android: '即将上线' },
+      live: { both: 'iOS / Android 已上线', ios: 'App Store 已上线',
+              android: 'Google Play 已上线' },
+    },
   },
   en: {
     headline: 'Seven things that are new',
     sub: 'Making airport runs a little easier',
     features: ['Follow roles', 'Filter by person', 'Flight notes', 'Home Screen widget',
                'Live Activity', 'Flight-number keyboard', 'In-app feedback'],
-    cta: { upcoming: 'Coming soon', live: 'Now on the App Store' },
+    cta: {
+      upcoming: { both: 'Coming soon', ios: 'Coming soon', android: 'Coming soon' },
+      live: { both: 'Now on iOS & Android', ios: 'Now on the App Store',
+              android: 'Now on Google Play' },
+    },
   },
 };
 
@@ -115,6 +123,13 @@ const COPY = {
 const STATE = argOf('--state') || 'upcoming';
 if (!['upcoming', 'live'].includes(STATE)) {
   throw new Error(`--state must be "upcoming" or "live", got "${STATE}"`);
+}
+
+/* Which stores the pill names. Not every release goes out on both, so this is
+   a flag rather than a constant. */
+const STORES = argOf('--stores') || 'both';
+if (!['both', 'ios', 'android'].includes(STORES)) {
+  throw new Error(`--stores must be "both", "ios" or "android", got "${STORES}"`);
 }
 
 /* The three screens that stay recognisable at chat-thumbnail size: a role
@@ -232,7 +247,7 @@ body{
   <div class="eyebrow">NextFly</div>
   <div class="title">
     <span class="ver">${VERSION}</span>
-    <span class="cta">${copy.cta[STATE]}</span>
+    <span class="cta">${copy.cta[STATE][STORES]}</span>
   </div>
   <div class="headline">${copy.headline}</div>
   <div class="sub">${copy.sub}</div>
@@ -308,7 +323,7 @@ for (const [key, copy] of Object.entries(COPY)) {
         throw new Error(`${key}/${scheme}/${size.name}: ${clipped.join('  ')}`);
       }
       const file = path.join(outDir,
-        `nextfly-${VERSION}-${key}-${STATE}-${scheme}-${size.name}.png`);
+        `nextfly-${VERSION}-${key}-${STATE}-${STORES}-${scheme}-${size.name}.png`);
       await p.screenshot({ path: file });
       made.push(file);
       await ctx.close();
