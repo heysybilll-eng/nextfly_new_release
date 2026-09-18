@@ -96,7 +96,7 @@ const T = {
 const COPY = {
   zh: {
     headline: '七项更新',
-    sub: '让接送机这件事，更省心一点',
+    sub: '接送谁、几点落地、要带什么，都记在一处',
     groups: [
       { label: '双端', items: ['关注角色', '按人筛选', '航班备注'] },
       { label: '仅 iOS', items: ['主屏幕小组件', '灵动岛焕新', '航班号键盘', '意见反馈'] },
@@ -109,7 +109,7 @@ const COPY = {
   },
   en: {
     headline: 'Seven things that are new',
-    sub: 'Making airport runs a little easier',
+    sub: 'Who you’re collecting, when they land, what to bring',
     groups: [
       { label: 'Both', items: ['Follow roles', 'Filter by person', 'Flight notes'] },
       { label: 'iOS only', items: ['Home Screen widget', 'Live Activity',
@@ -269,7 +269,7 @@ body{
     <span class="cta">${copy.cta[STATE][STORES]}</span>
   </div>
   <div class="headline">${copy.headline}</div>
-  <div class="sub">${copy.sub}</div>
+  ${copy.sub ? `<div class="sub">${copy.sub}</div>` : ''}
   ${copy.groups.map(g => `<div class="row">
     <span class="tag">${g.label}</span>
     <span class="feats">${g.items
