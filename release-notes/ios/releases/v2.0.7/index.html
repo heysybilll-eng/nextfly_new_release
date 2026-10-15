@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- The design ships as `auto`: the page follows the OS. Declaring both schemes
+     is what stops WebKit from applying its own auto-darkening on top of ours. -->
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
+<title>What's New</title>
+<style>
+/* ============================================================================
+   RESET
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, h1, h2, p, div, button { margin: 0; padding: 0; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+/* ============================================================================
+   TOKENS  —  ported verbatim from the design handoff
+   ---------------------------------------------------------------------------
+   Light is the base. Dark is applied two ways: by OS preference (production
+   behaviour) and by an explicit data-scheme attribute (QA override only).
+   Every colour on this page resolves through one of these.
+   ========================================================================== */
+:root {
+  color-scheme: light dark;
+
+  --surface-bg:        #FFFFFF;
+  --surface-elevated:  #F7F7F9;
+  --surface-card:      #F2F2F7;
+  --border-hairline:   #E3E3E8;
+  --text-primary:      #16161A;
+  --text-secondary:    #6E6E73;
+  --text-tertiary:     #AEAEB2;
+  --cta-inverse-fill:  #16161A;
+  --cta-inverse-text:  #FFFFFF;
+
+  --accent-primary:    #3E6AE1;
+  --marker-gold:       #D9A441;
+
+  /* The hero illustration is a theme token, not a filter. A purpose-drawn
+     white version ships alongside the black one, so it swaps like any other
+     colour and only the applicable file is ever downloaded. */
+  --hero-art: url("assets/hero-v207.png");
+
+  /* SF Pro / SF Pro Rounded are the real iOS system faces. The design
+     prototype substituted MiSans only because SF Pro is not licensable there;
+     on device these resolve to the genuine system fonts. `ui-rounded` is how
+     Safari exposes SF Pro Rounded. Non-Latin scripts fall through to the
+     platform faces (PingFang, Hiragino, Apple SD Gothic Neo, Devanagari
+     Sangam MN) via -apple-system. */
+  --family-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                 "Noto Sans", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
+                 "Noto Sans Devanagari", sans-serif;
+  --family-display: ui-rounded, "SF Pro Rounded", -apple-system,
+                    BlinkMacSystemFont, system-ui, var(--family-body);
+
+  --page-max: 480px;
+  --gutter: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme="light"]) {
+    --surface-bg:       #000000;
+    --surface-elevated: #1C1C1E;
+    --surface-card:     #232326;
+    --border-hairline:  #2C2C2E;
+    --text-primary:     #FFFFFF;
+    --text-secondary:   #8E8E93;
+    --text-tertiary:    #636366;
+    --cta-inverse-fill: #FFFFFF;
+    --cta-inverse-text: #000000;
+    --hero-art: url("assets/hero-v207-white.png");
+  }
+}
+:root[data-scheme="dark"] {
+  --surface-bg:       #000000;
+  --surface-elevated: #1C1C1E;
+  --surface-card:     #232326;
+  --border-hairline:  #2C2C2E;
+  --text-primary:     #FFFFFF;
+  --text-secondary:   #8E8E93;
+  --text-tertiary:    #636366;
+  --cta-inverse-fill: #FFFFFF;
+  --cta-inverse-text: #000000;
+  --hero-art: url("assets/hero-v207-white.png");
+}
+
+/* ============================================================================
+   BASE + WEBVIEW HARDENING
+   ========================================================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: none;
+}
+.f__body, .parity__body, .feedback { -webkit-user-select: text; user-select: text; }
+
+/* ============================================================================
+   HEADER  —  sticky, no bottom border
+   ========================================================================== */
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface-bg);
+}
+/* The top inset is NOT applied by default. The design has the host own
+   dismissal, which means the host supplies its own nav bar and has already
+   consumed the status bar. Adding env(safe-area-inset-top) on top of that
+   inserts a second status-bar-sized gap — and on Android the value is measured
+   against the window, so it stays non-zero even though the WebView starts
+   below the native bar. Hosts that present the page edge-to-edge opt in with
+   ?fullbleed=1. */
+:root[data-fullbleed] .hdr { padding-top: env(safe-area-inset-top, 0px); }
+
+/* ?header=0 — the host's nav bar already shows the title, so drop ours and
+   keep only the language control. */
+:root[data-noheader] .hdr__title { display: none; }
+:root[data-noheader] .langbtn { margin-left: auto; }
+.hdr__in {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hdr__title {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.langbtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: none;
+  transition: filter 150ms, transform 60ms;
+}
+.langbtn:active { transform: scale(0.97); }
+@media (hover: hover) { .langbtn:hover { filter: brightness(1.15); } }
+
+/* ============================================================================
+   BODY COLUMN
+   ========================================================================== */
+.body {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 56px;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* -- hero ------------------------------------------------------------------ */
+.hero { display: flex; flex-direction: column; gap: 12px; }
+.hero-art {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 8px;
+  aspect-ratio: 680 / 764;
+  background: var(--hero-art) center / contain no-repeat;
+}
+
+.hero__heading {
+  font-family: var(--family-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 8px;
+}
+.hero__intro {
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- section label --------------------------------------------------------- */
+.seclabel { display: flex; flex-direction: column; gap: 12px; }
+.seclabel__text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+/* The only hairline rule on the page. */
+.seclabel__rule { height: 1px; background: var(--border-hairline); }
+
+/* -- feature blocks -------------------------------------------------------- */
+.f { display: flex; flex-direction: column; gap: 10px; }
+.f__title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+.f__body {
+  font-size: 17px;
+  line-height: 1.7;     /* blocks with highlighted phrases need the room */
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.f--plain .f__body { line-height: 1.45; }   /* block 5 carries no highlights */
+
+/* Hand-drawn marker underline, exactly as specified in the handoff. */
+.mark {
+  color: var(--text-primary);
+  font-weight: 600;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20200%2014%27%20preserveAspectRatio=%27none%27%3E%3Cpath%20d=%27M4%2010c30-5%2058%202%2086-2s62-2%20106%203%27%20stroke=%27%23D9A441%27%20stroke-width=%275%27%20stroke-linecap=%27round%27%20fill=%27none%27%20opacity=%27.8%27/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 9px;
+  padding-bottom: 3px;
+}
+
+/* -- screenshot panel ------------------------------------------------------ */
+.shot {
+  margin-top: 6px;
+  border-radius: 16px;
+  background: var(--surface-elevated);
+  padding: 22px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+/* <picture> is display:inline and would otherwise become the flex item,
+   leaving the img unsized. display:contents makes the img the direct child so
+   all sizing below applies to it. */
+.shot picture { display: contents; }
+.shot img {
+  width: 66%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-hairline);
+}
+
+/* -- parity card ----------------------------------------------------------- */
+.parity {
+  border-radius: 16px;
+  border: 1px solid var(--border-hairline);
+  background: var(--surface-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.parity__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-primary);
+}
+.parity__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.parity__body {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* -- feedback -------------------------------------------------------------- */
+.feedback {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  text-wrap: pretty;
+}
+
+/* ============================================================================
+   LANGUAGE SHEET
+   ========================================================================== */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: scrim-in 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sheet[hidden] { display: none; }
+.sheet__panel {
+  width: 100%;
+  max-width: var(--page-max);
+  background: var(--surface-elevated);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 18px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  max-height: 76vh;
+  overflow-y: auto;
+  animation: sheet-up 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet__grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border-hairline);
+  margin: 0 auto 14px;
+}
+.sheet__title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding-bottom: 8px;
+}
+.sheet__list { display: flex; flex-direction: column; }
+.sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 2px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--family-body);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 150ms, transform 60ms;
+}
+.sheet__row:active { transform: scale(0.99); }
+@media (hover: hover) { .sheet__row:hover { filter: brightness(1.15); } }
+.sheet__check { display: none; color: var(--accent-primary); }
+.sheet__row[aria-selected="true"] .sheet__check { display: flex; }
+
+body.sheet-open { overflow: hidden; }
+
+/* ============================================================================
+   LOCALE TYPOGRAPHY
+   ---------------------------------------------------------------------------
+   The design specifies one Latin-tuned treatment. Two adjustments are applied
+   on top of it because the design's values clip or crowd non-Latin scripts —
+   both are corrections needed to render the specified design faithfully, not
+   restyling.
+   ========================================================================== */
+
+/* Devanagari matras and conjuncts extend past the Latin em box; feature titles
+   at line-height 1.2 clip them. */
+:lang(hi) .f__title { line-height: 1.45; }
+:lang(hi) .hdr__title, :lang(hi) .sheet__title, :lang(hi) .parity__title { line-height: 1.4; }
+
+/* Negative tracking is tuned for Latin and visibly crowds CJK. Kinsoku
+   line-breaking also needs word-break left alone. */
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__title, .hdr__title, .parity__title, .sheet__title) {
+  letter-spacing: 0;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) :is(.f__body, .parity__body, .hero__intro, .feedback) {
+  word-break: normal;
+  line-break: strict;
+}
+:is(:lang(ja), :lang(ko), :lang(zh-TW)) .f__title { line-height: 1.35; }
+
+/* Long German compounds and Russian tokens must never widen the page. */
+.f__title, .hero__heading, .parity__title { overflow-wrap: anywhere; }
+
+/* ============================================================================
+   NARROW SCREENS  (iPhone SE / mini, 320-359pt)
+   ---------------------------------------------------------------------------
+   Not from the design, which specifies a single type scale. At 320px that
+   scale runs the hero heading to the edge and breaks the intro onto three
+   lines. Only the two display sizes and the gutter step down; body copy,
+   colour and spacing rhythm are untouched.
+   ========================================================================== */
+@media (max-width: 359px) {
+  :root { --gutter: 16px; }
+  .hero__heading { font-size: 28px; }
+  .f__title { font-size: 18px; }
+}
+
+/* ============================================================================
+   WIDE SCREENS  (600px and up)
+   ---------------------------------------------------------------------------
+   Also not from the design: in the app this is only ever a phone-width
+   WebView. This is a fallback for the URL being opened in a desktop browser
+   or a large iPad, where a bare 480px column stranded in empty space reads as
+   broken rather than deliberate. Nothing inside the column changes, so
+   rendering at phone widths is unaffected.
+   ========================================================================== */
+@media (min-width: 600px) {
+  body { background: var(--surface-elevated); }
+
+  .shell {
+    max-width: var(--page-max);
+    margin: 40px auto;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-hairline);
+    border-radius: 20px;
+  }
+
+  /* Sticky would slide the header out of the card's rounded top, and there is
+     no reach problem to solve on a pointer device. */
+  .hdr {
+    position: static;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  /* The safe-area insets are meaningless here and the card supplies the
+     breathing room the viewport padding was providing. */
+  .body { padding-bottom: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+/* 2.0.7 is a smaller release. Keep the established artwork and tokens,
+   with a compact hero and a viewport onto the keyboard setting (no image edits). */
+.hero-art { max-width: 260px; aspect-ratio: 1 / 1; }
+.shot--settings { display: block; padding: 0; aspect-ratio: 1179 / 800; }
+.shot--settings picture { display: contents; }
+.shot--settings img { width: 100%; border: 0; border-radius: 0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<header class="hdr">
+  <div class="hdr__in">
+    <div class="hdr__title" id="navTitle"></div>
+    <button type="button" class="langbtn" id="langBtn" aria-haspopup="dialog" aria-expanded="false">
+      <span id="langBadge"></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="body">
+
+  <div class="hero">
+    <div class="hero-art" role="img" aria-hidden="true"></div>
+    <h1 class="hero__heading" id="versionHeading"></h1>
+    <p class="hero__intro" id="intro"></p>
+  </div>
+
+  <div class="seclabel">
+    <div class="seclabel__text" id="sectionLabel"></div>
+    <div class="seclabel__rule"></div>
+  </div>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f1t"></h2>
+    <p class="f__body" data-t="f1b"></p>
+    <div class="shot"><picture><source srcset="assets/weather-insight.webp" type="image/webp"><img src="assets/weather-insight.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f2t"></h2>
+    <p class="f__body" data-t="f2b"></p>
+    <div class="shot"><picture><source srcset="assets/flight-number-keyboard.webp" type="image/webp"><img src="assets/flight-number-keyboard.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f">
+    <h2 class="f__title" data-t="f3t"></h2>
+    <p class="f__body" data-t="f3b"></p>
+    <div class="shot shot--settings"><picture><source srcset="assets/custom-keyboard-toggle.webp" type="image/webp"><img src="assets/custom-keyboard-toggle.png" alt="" width="600" height="1301" loading="lazy" decoding="async"></picture></div>
+  </section>
+
+  <section class="f f--plain">
+    <h2 class="f__title" data-t="f4t"></h2>
+    <p class="f__body" data-t="f4b"></p>
+  </section>
+
+  <div class="parity">
+    <div class="parity__row">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      <div class="parity__title" data-t="parityTitle"></div>
+    </div>
+    <p class="parity__body" data-t="parityBody"></p>
+  </div>
+
+  <p class="feedback" data-t="feedback"></p>
+
+</main>
+
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet__panel" id="sheetPanel">
+    <div class="sheet__grabber"></div>
+    <div class="sheet__title" id="sheetTitle"></div>
+    <div class="sheet__list" id="sheetList"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CODES = ['en', 'fr', 'de', 'it', 'es', 'ja', 'ko', 'zh-TW', 'id', 'hi', 'ru'];
+
+  var BADGES = {
+    en: 'EN', fr: 'FR', de: 'DE', it: 'IT', es: 'ES', ja: 'JA',
+    ko: 'KO', 'zh-TW': '中文', id: 'ID', hi: 'HI', ru: 'RU'
+  };
+
+  /* ==========================================================================
+     COPY
+     --------------------------------------------------------------------------
+     2.0.7 copy based on the confirmed release scope and supplied screenshots.
+     [[...]] marks a phrase that carries the gold marker underline. The handoff
+     recommends an explicit markup token over substring matching, so the marks
+     are baked into each locale's own string. This also removes a defect in the
+     prototype, where F1_MARK was keyed "zh" while STRINGS was keyed "zh-TW",
+     so Traditional Chinese silently lost its feature-1 highlight.
+     ======================================================================== */
+  var STRINGS = {
+    "en": {
+        "navTitle": "What's New",
+        "langName": "English",
+        "intro": "A few thoughtful updates for everyday use. On iOS and Android.",
+        "sectionLabel": "NEW & IMPROVED",
+        "feedback": "Questions or ideas? Reach out — we read every message.",
+        "langSheetTitle": "Language",
+        "f1t": "Weather settings, clearer at a glance",
+        "f1b": "Weather settings on flight details and radar have been refined. Choose a [[weather layer]], with separate switches for wind particles and typhoon tracks. Wind field is a Pro+ feature.",
+        "f2t": "A more familiar number row",
+        "f2b": "The flight number keyboard now puts [[0 after 9]], at the far right of the number row.",
+        "f3t": "Your keyboard, your choice",
+        "f3b": "Go to [[Settings › Custom keyboard]] to turn it on or off. Turn it off to search for flights with your system keyboard.",
+        "f4t": "More consistent translations",
+        "f4b": "We corrected role-related translations in several languages for more consistent wording.",
+        "parityTitle": "A reminder for lifetime members",
+        "parityBody": "If you have been gifted a lifetime membership and still have a paid subscription, a reminder will prompt you to cancel your existing subscription. It is not cancelled automatically."
+    },
+    "fr": {
+        "navTitle": "Nouveautés",
+        "langName": "Français",
+        "intro": "Quelques améliorations pour le quotidien, sur iOS et Android.",
+        "sectionLabel": "NOUVEAUTÉS ET AMÉLIORATIONS",
+        "feedback": "Des questions ou des idées ? Écrivez-nous, nous lisons chaque message.",
+        "langSheetTitle": "Langue",
+        "f1t": "Des réglages météo plus clairs",
+        "f1b": "Les réglages météo des détails de vol et du radar ont été améliorés. Choisissez une [[couche météo]] et activez séparément les particules de vent et les trajectoires des typhons. Le champ de vent est une fonction Pro+.",
+        "f2t": "Une rangée de chiffres plus familière",
+        "f2b": "Sur le clavier des numéros de vol, le [[0 suit désormais le 9]], tout à droite.",
+        "f3t": "Le clavier de votre choix",
+        "f3b": "Dans [[Réglages › Custom keyboard]], activez ou désactivez le clavier personnalisé. Désactivez-le pour rechercher vos vols avec le clavier système.",
+        "f4t": "Des traductions plus cohérentes",
+        "f4b": "Nous avons corrigé les traductions liées aux rôles dans plusieurs langues.",
+        "parityTitle": "Un rappel pour les membres à vie",
+        "parityBody": "Si un abonnement à vie vous a été offert et que vous avez encore un abonnement payant, un rappel vous invite à résilier ce dernier. La résiliation n’est pas automatique."
+    },
+    "de": {
+        "navTitle": "Neuerungen",
+        "langName": "Deutsch",
+        "intro": "Kleine Verbesserungen für den Alltag. Für iOS und Android.",
+        "sectionLabel": "NEU UND VERBESSERT",
+        "feedback": "Fragen oder Ideen? Schreib uns – wir lesen jede Nachricht.",
+        "langSheetTitle": "Sprache",
+        "f1t": "Wetter klarer einstellen",
+        "f1b": "Die Wettereinstellungen in den Flugdetails und im Radar wurden überarbeitet. Wähle eine [[Wetterebene]] und schalte Windpartikel und Taifun-Zugbahnen separat ein. Das Windfeld ist eine Pro+-Funktion.",
+        "f2t": "Eine vertrautere Zahlenreihe",
+        "f2b": "Auf der Flugnummerntastatur steht die [[0 jetzt rechts neben der 9]], ganz am Ende der Zahlenreihe.",
+        "f3t": "Deine Tastatur, deine Wahl",
+        "f3b": "Unter [[Einstellungen › Custom keyboard]] kannst du die spezielle Tastatur ein- oder ausschalten. Ist sie aus, nutzt die Flugsuche deine Systemtastatur.",
+        "f4t": "Einheitlichere Übersetzungen",
+        "f4b": "Wir haben rollenbezogene Übersetzungen in mehreren Sprachen korrigiert.",
+        "parityTitle": "Ein Hinweis für Mitglieder auf Lebenszeit",
+        "parityBody": "Wenn du eine lebenslange Mitgliedschaft geschenkt bekommen hast und noch ein kostenpflichtiges Abo hast, erinnert dich die App daran, dieses zu kündigen. Es wird nicht automatisch gekündigt."
+    },
+    "it": {
+        "navTitle": "Novità",
+        "langName": "Italiano",
+        "intro": "Piccoli miglioramenti per ogni giorno, su iOS e Android.",
+        "sectionLabel": "NOVITÀ E MIGLIORAMENTI",
+        "feedback": "Domande o idee? Scrivici: leggiamo ogni messaggio.",
+        "langSheetTitle": "Lingua",
+        "f1t": "Impostazioni meteo più chiare",
+        "f1b": "Abbiamo migliorato le impostazioni meteo nei dettagli del volo e nel radar. Scegli un [[livello meteo]] e attiva separatamente le particelle del vento e le traiettorie dei tifoni. Il campo del vento è una funzione Pro+.",
+        "f2t": "Una fila di numeri più familiare",
+        "f2b": "Sulla tastiera dei numeri di volo, lo [[0 è ora dopo il 9]], all’estrema destra.",
+        "f3t": "La tastiera che preferisci",
+        "f3b": "In [[Impostazioni › Custom keyboard]] puoi attivare o disattivare la tastiera personalizzata. Disattivala per cercare i voli con la tastiera di sistema.",
+        "f4t": "Traduzioni più coerenti",
+        "f4b": "Abbiamo corretto le traduzioni relative ai ruoli in diverse lingue.",
+        "parityTitle": "Un promemoria per gli abbonati a vita",
+        "parityBody": "Se hai ricevuto in regalo un abbonamento a vita e hai ancora un abbonamento a pagamento, un promemoria ti inviterà a disdire quest’ultimo. La disdetta non è automatica."
+    },
+    "es": {
+        "navTitle": "Novedades",
+        "langName": "Español",
+        "intro": "Pequeñas mejoras para el día a día, en iOS y Android.",
+        "sectionLabel": "NUEVO Y MEJORADO",
+        "feedback": "¿Preguntas o ideas? Escríbenos: leemos todos los mensajes.",
+        "langSheetTitle": "Idioma",
+        "f1t": "Ajustes del tiempo más claros",
+        "f1b": "Hemos mejorado los ajustes del tiempo en los detalles del vuelo y el radar. Elige una [[capa meteorológica]] y activa por separado las partículas de viento y las trayectorias de tifones. El campo de viento es una función Pro+.",
+        "f2t": "Una fila de números más familiar",
+        "f2b": "En el teclado de números de vuelo, el [[0 va ahora después del 9]], en el extremo derecho.",
+        "f3t": "El teclado que prefieras",
+        "f3b": "En [[Ajustes › Custom keyboard]] puedes activar o desactivar el teclado personalizado. Desactívalo para buscar vuelos con el teclado del sistema.",
+        "f4t": "Traducciones más coherentes",
+        "f4b": "Hemos corregido las traducciones relacionadas con los roles en varios idiomas.",
+        "parityTitle": "Un recordatorio para miembros de por vida",
+        "parityBody": "Si has recibido una membresía de por vida como regalo y aún tienes una suscripción de pago, te recordaremos que canceles esa suscripción. No se cancela automáticamente."
+    },
+    "ja": {
+        "navTitle": "新機能",
+        "langName": "日本語",
+        "intro": "毎日の使い心地を少し改善。iOS・Androidの両方でご利用いただけます。",
+        "sectionLabel": "新機能と改善",
+        "feedback": "ご質問やご提案はお気軽にお寄せください。すべて拝見しています。",
+        "langSheetTitle": "言語",
+        "f1t": "天気設定をわかりやすく",
+        "f1b": "フライト詳細とレーダーの天気設定を改善しました。[[天気レイヤー]]を選び、風の流れを示す粒子と台風の進路は個別に切り替えられます。風場レイヤーはPro+の機能です。",
+        "f2t": "使い慣れた数字の並びに",
+        "f2b": "フライト番号キーボードの[[0を9の右隣]]、数字列の一番右に移動しました。",
+        "f3t": "キーボードを好みに合わせて",
+        "f3b": "[[設定 › Custom keyboard]]でオン・オフを切り替えられます。オフにすると、フライト番号の検索にシステムキーボードを使用します。",
+        "f4t": "翻訳の表現を統一",
+        "f4b": "一部の言語で「役割」に関する翻訳を修正し、表現を統一しました。",
+        "parityTitle": "永久会員へのお知らせ",
+        "parityBody": "永久会員資格をギフトで受け取り、有料サブスクリプションが残っている方には、既存のサブスクリプションの解約を促すお知らせを表示します。自動では解約されません。"
+    },
+    "ko": {
+        "navTitle": "새로운 기능",
+        "langName": "한국어",
+        "intro": "일상 속 작은 불편을 개선했어요. iOS와 Android 모두에서 만나보세요.",
+        "sectionLabel": "새로운 기능 및 개선",
+        "feedback": "질문이나 아이디어가 있으면 알려주세요. 모든 메시지를 읽고 있습니다.",
+        "langSheetTitle": "언어",
+        "f1t": "더 명확해진 날씨 설정",
+        "f1b": "항공편 상세와 레이더의 날씨 설정을 개선했어요. [[날씨 레이어]]를 선택하고 바람 입자와 태풍 경로는 각각 켜거나 끌 수 있어요. 바람장 레이어는 Pro+ 기능이에요.",
+        "f2t": "더 익숙한 숫자 배열",
+        "f2b": "항공편 번호 키보드의 [[0을 9 오른쪽]]으로 옮겼어요. 이제 숫자 줄 맨 오른쪽에 있어요.",
+        "f3t": "원하는 키보드를 선택하세요",
+        "f3b": "[[설정 › Custom keyboard]]에서 전용 키보드를 켜거나 끌 수 있어요. 끄면 항공편 번호 검색에 시스템 키보드를 사용해요.",
+        "f4t": "더 일관된 번역",
+        "f4b": "일부 언어에서 역할 관련 번역을 수정해 표현을 통일했어요.",
+        "parityTitle": "평생 회원을 위한 알림",
+        "parityBody": "평생 멤버십을 선물받았지만 유료 구독이 남아 있다면, 기존 구독을 해지하도록 알려드려요. 구독이 자동으로 해지되지는 않아요."
+    },
+    "zh-TW": {
+        "navTitle": "更新內容",
+        "langName": "繁體中文",
+        "intro": "幾項日常使用的小改進，iOS 與 Android 同步提供。",
+        "sectionLabel": "新增與改進",
+        "feedback": "有任何問題或建議，歡迎告訴我們，每一則訊息我們都會閱讀。",
+        "langSheetTitle": "語言",
+        "f1t": "天氣設定，一目了然",
+        "f1b": "優化了航班詳情頁與雷達頁的天氣設定。選擇[[天氣圖層]]，並透過獨立開關控制風場粒子與颱風路徑。風場圖層為 Pro+ 功能。",
+        "f2t": "更順手的數字排列",
+        "f2b": "航班號鍵盤的數字 [[0 移到 9 的右側]]，位於數字列最右邊。",
+        "f3t": "鍵盤，照你的習慣選",
+        "f3b": "前往[[設定 › Custom keyboard]] 即可開啟或關閉。關閉後，搜尋航班號會使用系統鍵盤。",
+        "f4t": "更一致的多語言表述",
+        "f4b": "修正了部分語言中「角色」相關文案的翻譯，讓表述更一致。",
+        "parityTitle": "給終身會員的小提醒",
+        "parityBody": "如果你獲贈了終身會員，且仍有付費訂閱，系統會提醒你取消原有訂閱。訂閱不會自動取消。"
+    },
+    "id": {
+        "navTitle": "Yang Baru",
+        "langName": "Bahasa Indonesia",
+        "intro": "Perbaikan kecil untuk penggunaan sehari-hari, di iOS dan Android.",
+        "sectionLabel": "BARU & DITINGKATKAN",
+        "feedback": "Ada pertanyaan atau ide? Hubungi kami — setiap pesan kami baca.",
+        "langSheetTitle": "Bahasa",
+        "f1t": "Pengaturan cuaca lebih jelas",
+        "f1b": "Pengaturan cuaca di detail penerbangan dan radar telah diperbarui. Pilih [[lapisan cuaca]], lalu atur partikel angin dan jalur topan secara terpisah. Medan angin adalah fitur Pro+.",
+        "f2t": "Urutan angka yang lebih familiar",
+        "f2b": "Pada keyboard nomor penerbangan, [[0 kini berada setelah 9]], di ujung kanan baris angka.",
+        "f3t": "Pilih keyboard yang kamu suka",
+        "f3b": "Buka [[Pengaturan › Custom keyboard]] untuk mengaktifkan atau menonaktifkannya. Saat nonaktif, pencarian nomor penerbangan memakai keyboard sistem.",
+        "f4t": "Terjemahan lebih konsisten",
+        "f4b": "Kami memperbaiki terjemahan terkait peran dalam beberapa bahasa agar lebih konsisten.",
+        "parityTitle": "Pengingat untuk anggota seumur hidup",
+        "parityBody": "Jika kamu mendapat hadiah keanggotaan seumur hidup dan masih memiliki langganan berbayar, kami akan mengingatkanmu untuk membatalkan langganan tersebut. Langganan tidak dibatalkan otomatis."
+    },
+    "hi": {
+        "navTitle": "नया क्या है",
+        "langName": "हिन्दी",
+        "intro": "रोज़मर्रा के इस्तेमाल के लिए कुछ छोटे सुधार। iOS और Android, दोनों पर।",
+        "sectionLabel": "नया और बेहतर",
+        "feedback": "कोई सवाल या सुझाव? हमें बताएं — हम हर संदेश पढ़ते हैं।",
+        "langSheetTitle": "भाषा",
+        "f1t": "मौसम की सेटिंग्स अब और स्पष्ट",
+        "f1b": "फ़्लाइट विवरण और रडार की मौसम सेटिंग्स बेहतर की गई हैं। [[मौसम की लेयर]] चुनें और हवा के कणों तथा टाइफ़ून के रास्तों को अलग-अलग चालू या बंद करें। विंड फ़ील्ड Pro+ की सुविधा है।",
+        "f2t": "अंकों का ज़्यादा परिचित क्रम",
+        "f2b": "फ़्लाइट नंबर कीबोर्ड में [[0 अब 9 के बाद]], अंकों की पंक्ति में सबसे दाईं ओर है।",
+        "f3t": "अपनी पसंद का कीबोर्ड चुनें",
+        "f3b": "[[सेटिंग्स › Custom keyboard]] में इसे चालू या बंद करें। बंद करने पर फ़्लाइट नंबर खोजने के लिए सिस्टम कीबोर्ड इस्तेमाल होगा।",
+        "f4t": "अनुवाद में बेहतर एकरूपता",
+        "f4b": "कुछ भाषाओं में भूमिकाओं से जुड़े अनुवाद सुधारे गए हैं, ताकि शब्दावली अधिक एकरूप हो।",
+        "parityTitle": "आजीवन सदस्यों के लिए रिमाइंडर",
+        "parityBody": "अगर आपको आजीवन सदस्यता उपहार में मिली है और आपका सशुल्क सब्सक्रिप्शन अभी भी है, तो उसे रद्द करने का रिमाइंडर दिखेगा। सब्सक्रिप्शन अपने-आप रद्द नहीं होगा।"
+    },
+    "ru": {
+        "navTitle": "Что нового",
+        "langName": "Русский",
+        "intro": "Небольшие улучшения на каждый день — для iOS и Android.",
+        "sectionLabel": "НОВОЕ И УЛУЧШЕННОЕ",
+        "feedback": "Вопросы или идеи? Напишите нам — мы читаем каждое сообщение.",
+        "langSheetTitle": "Язык",
+        "f1t": "Понятнее настройки погоды",
+        "f1b": "Мы обновили настройки погоды в деталях рейса и на радаре. Выберите [[погодный слой]], а частицы ветра и траектории тайфунов включайте отдельно. Поле ветра доступно в Pro+.",
+        "f2t": "Привычный порядок цифр",
+        "f2b": "На клавиатуре для номера рейса [[0 теперь стоит после 9]], в правом конце ряда цифр.",
+        "f3t": "Выбирайте свою клавиатуру",
+        "f3b": "В [[Настройках › Custom keyboard]] можно включить или отключить специальную клавиатуру. Если отключить её, поиск по номеру рейса будет использовать системную клавиатуру.",
+        "f4t": "Более единообразные переводы",
+        "f4b": "Мы исправили переводы, связанные с ролями, на нескольких языках.",
+        "parityTitle": "Напоминание для пожизненных участников",
+        "parityBody": "Если вы получили пожизненное членство в подарок и у вас ещё есть платная подписка, приложение напомнит отменить её. Автоматически подписка не отменяется."
+    }
+};
+
+  /* ==========================================================================
+     LANGUAGE RESOLUTION  —  order per the handoff:
+     manual pick > lang param > locale > hl > navigator.language > en
+     ======================================================================== */
+  function params() {
+    try { return new URLSearchParams(location.search); }
+    catch (e) { return { get: function () { return null; } }; }
+  }
+
+  function normalize(raw) {
+    if (!raw) return null;
+    var v = String(raw).trim();
+    if (!v) return null;
+    var lower = v.toLowerCase();
+    for (var i = 0; i < CODES.length; i++) {
+      if (CODES[i].toLowerCase() === lower) return CODES[i];
+    }
+    var base = lower.split(/[-_]/)[0];
+    if (base === 'zh') return 'zh-TW';
+    for (var j = 0; j < CODES.length; j++) {
+      if (CODES[j].toLowerCase().split('-')[0] === base) return CODES[j];
+    }
+    return null;
+  }
+
+  var picked = null;
+
+  function activeLang() {
+    var p = params();
+    return picked
+      || normalize(p.get('lang'))
+      || normalize(p.get('locale'))
+      || normalize(p.get('hl'))
+      || normalize(navigator.language)
+      || 'en';
+  }
+
+  /* ==========================================================================
+     MARKER HIGHLIGHT
+     --------------------------------------------------------------------------
+     Splits "plain [[marked]] plain" into text nodes and .mark spans. Built with
+     createTextNode rather than innerHTML so copy can never inject markup.
+     ======================================================================== */
+  function applyText(el, raw) {
+    el.textContent = '';
+    var parts = String(raw).split(/\[\[|\]\]/);
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2 === 1) {
+        var span = document.createElement('span');
+        span.className = 'mark';
+        span.appendChild(document.createTextNode(parts[i]));
+        el.appendChild(span);
+      } else {
+        el.appendChild(document.createTextNode(parts[i]));
+      }
+    }
+  }
+
+  /* ==========================================================================
+     SHEET
+     ======================================================================== */
+  var sheet = document.getElementById('sheet');
+  var sheetList = document.getElementById('sheetList');
+  var langBtn = document.getElementById('langBtn');
+  var lastFocus = null;
+
+  function openSheet() {
+    lastFocus = document.activeElement;
+    sheet.hidden = false;
+    document.body.classList.add('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'true');
+    var active = sheetList.querySelector('[aria-selected="true"]');
+    if (active) active.focus();
+  }
+
+  function closeSheet() {
+    sheet.hidden = true;
+    document.body.classList.remove('sheet-open');
+    langBtn.setAttribute('aria-expanded', 'false');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  langBtn.addEventListener('click', openSheet);
+  sheet.addEventListener('click', closeSheet);
+  document.getElementById('sheetPanel').addEventListener('click', function (e) {
+    e.stopPropagation();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !sheet.hidden) closeSheet();
+  });
+
+  function buildSheet(lang) {
+    sheetList.textContent = '';
+    CODES.forEach(function (code) {
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'sheet__row';
+      row.setAttribute('role', 'option');
+      row.setAttribute('aria-selected', String(code === lang));
+      row.lang = code;
+
+      var name = document.createElement('span');
+      name.textContent = STRINGS[code].langName;
+      row.appendChild(name);
+
+      var check = document.createElement('span');
+      check.className = 'sheet__check';
+      check.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
+        'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+        'stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+      row.appendChild(check);
+
+      row.addEventListener('click', function () {
+        picked = code;
+        closeSheet();
+        render();
+      });
+      sheetList.appendChild(row);
+    });
+  }
+
+  /* ==========================================================================
+     RENDER
+     ======================================================================== */
+  function render() {
+    var lang = activeLang();
+    var t = STRINGS[lang] || STRINGS.en;
+    var p = params();
+
+    document.documentElement.lang = lang;
+    document.documentElement.dir = 'ltr';
+    document.title = t.navTitle;
+
+    document.getElementById('navTitle').textContent = t.navTitle;
+    document.getElementById('langBadge').textContent = BADGES[lang] || 'EN';
+    document.getElementById('intro').textContent = t.intro;
+    document.getElementById('sectionLabel').textContent = t.sectionLabel;
+    document.getElementById('sheetTitle').textContent = t.langSheetTitle;
+
+    /* Heading is `versionWord + " " + version`. Neither is localized in the
+       design — versionWord is a config input, not a STRINGS key. */
+    var version = p.get('v') || '2.0.7';
+    var versionWord = p.get('vw') || 'Version';
+    if (!/^[\w.\-]{1,24}$/.test(version)) version = '2.0.7';
+    document.getElementById('versionHeading').textContent = versionWord + ' ' + version;
+
+    var nodes = document.querySelectorAll('[data-t]');
+    for (var i = 0; i < nodes.length; i++) {
+      var key = nodes[i].getAttribute('data-t');
+      applyText(nodes[i], t[key] !== undefined ? t[key] : STRINGS.en[key]);
+    }
+
+    buildSheet(lang);
+  }
+
+  /* QA-only scheme override; production ships as auto (follows the OS). */
+  var theme = params().get('theme');
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-scheme', theme);
+  }
+
+  /* Presentation hints from the host. Neither is detectable from inside the
+     WebView, so the host has to say. */
+  if (params().get('fullbleed') === '1') {
+    document.documentElement.setAttribute('data-fullbleed', '');
+  }
+  if (params().get('header') === '0') {
+    document.documentElement.setAttribute('data-noheader', '');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();
+</script>
+
+</body>
+</html>
