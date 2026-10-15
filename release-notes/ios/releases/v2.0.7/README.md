@@ -5,8 +5,8 @@
 ## 交付
 
 - index.html + assets/：静态部署版本。
-- index.standalone.html：图片内嵌的单文件版本，已核对图片和文案。
-- 不含外部脚本或字体请求；无需构建即可部署。可将 index.html 与 assets/ 一起上传到静态服务器；仅支持单文件上传时使用 index.standalone.html。GitHub 源码上传不代表已部署为网页。
+- nextfly-release-notes-ios-v2.0.7.html：图片内嵌的单文件版本，已核对图片和文案。
+- 不含外部脚本或字体请求；无需构建即可部署。可将 index.html 与 assets/ 一起上传到静态服务器；仅支持单文件上传时使用 nextfly-release-notes-ios-v2.0.7.html。GitHub 源码上传不代表已部署为网页。
 
 ## 语言与主题
 
