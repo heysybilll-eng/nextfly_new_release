@@ -460,7 +460,7 @@ body.sheet-open { overflow: hidden; }
     transition-duration: 0.01ms !important;
   }
 }
-/* 2.0.7 is a smaller release. Keep the established artwork and tokens,
+/* 2.0.8 is a smaller release. Keep the established artwork and tokens,
    with a compact hero and a viewport onto the keyboard setting (no image edits). */
 .hero-art { max-width: 260px; aspect-ratio: 1 / 1; }
 .shot--settings { display: block; padding: 0; aspect-ratio: 1179 / 800; }
@@ -560,7 +560,7 @@ body.sheet-open { overflow: hidden; }
   /* ==========================================================================
      COPY
      --------------------------------------------------------------------------
-     2.0.7 copy based on the confirmed release scope and supplied screenshots.
+     2.0.8 copy based on the confirmed release scope and supplied screenshots.
      [[...]] marks a phrase that carries the gold marker underline. The handoff
      recommends an explicit markup token over substring matching, so the marks
      are baked into each locale's own string. This also removes a defect in the
@@ -910,9 +910,9 @@ body.sheet-open { overflow: hidden; }
 
     /* Heading is `versionWord + " " + version`. Neither is localized in the
        design — versionWord is a config input, not a STRINGS key. */
-    var version = p.get('v') || '2.0.7';
+    var version = p.get('v') || '2.0.8';
     var versionWord = p.get('vw') || 'Version';
-    if (!/^[\w.\-]{1,24}$/.test(version)) version = '2.0.7';
+    if (!/^[\w.\-]{1,24}$/.test(version)) version = '2.0.8';
     document.getElementById('versionHeading').textContent = versionWord + ' ' + version;
 
     var nodes = document.querySelectorAll('[data-t]');

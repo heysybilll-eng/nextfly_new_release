@@ -26,7 +26,7 @@ import { VIEWPORTS, CHROMIUM, pageUrl, RELEASE } from './_shared.mjs';
 const HERO = {
   'v2.0.5': ['rocket-lineart.png', 'rocket-lineart-white.png'],
   'v2.0.6': ['hero.png', 'hero-white.png'],
-  'v2.0.7': ['hero-v207.png', 'hero-v207-white.png']
+  'v2.0.8': ['hero-v208.png', 'hero-v208-white.png']
 }[RELEASE];
 if (!HERO) throw new Error(`No hero filenames defined for ${RELEASE}`);
 
@@ -99,7 +99,7 @@ function specFor(C) {
 
     // Hero
     ['.hero', 'gap', '12px'],
-    ['.hero-art', 'maxWidth', RELEASE === 'v2.0.7' ? '260px' : '340px'],
+    ['.hero-art', 'maxWidth', RELEASE === 'v2.0.8' ? '260px' : '340px'],
     ['.hero-art', 'marginBottom', '8px'],
     ['.hero-art', 'backgroundImage', C.heroArt],
     ['.hero-art', 'filter', 'none'],   // the invert hack must stay gone

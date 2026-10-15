@@ -62,9 +62,9 @@ export const SOURCE_MAP = {
     { from: 'rocket-lineart-even@2x.png',       to: 'rocket-lineart',       maxCssWidth: 340 },
     { from: 'rocket-lineart-even-white@2x.png', to: 'rocket-lineart-white', maxCssWidth: 340 }
   ],
-  'v2.0.7': [
-    { from: 'hero.png', to: 'hero-v207', maxCssWidth: 260 },
-    { from: 'hero-white.png', to: 'hero-v207-white', maxCssWidth: 260 },
+  'v2.0.8': [
+    { from: 'hero.png', to: 'hero-v208', maxCssWidth: 260 },
+    { from: 'hero-white.png', to: 'hero-v208-white', maxCssWidth: 260 },
     { from: 'weather-insight.png', to: 'weather-insight', maxCssWidth: 300 },
     { from: 'flight-number-keyboard.png', to: 'flight-number-keyboard', maxCssWidth: 300 },
     { from: 'custom-keyboard-toggle.png', to: 'custom-keyboard-toggle', maxCssWidth: 300 }
